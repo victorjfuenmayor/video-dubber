@@ -1,6 +1,10 @@
 #!/bin/sh
 set -e
 
+# Always update yt-dlp to latest to get newest YouTube patches
+echo "Updating yt-dlp..."
+yt-dlp -U 2>&1 | tail -3 || true
+
 if [ -n "$TAILSCALE_AUTH_KEY" ] && [ -n "$TAILSCALE_EXIT_NODE" ]; then
   echo "Starting Tailscale in background..."
   tailscaled --tun=userspace-networking --socks5-server=127.0.0.1:1055 &

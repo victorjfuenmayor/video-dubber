@@ -27,7 +27,7 @@ const PRONUNCIATION_MAP: [RegExp, string][] = [
   [/\bGPT\b/g,                      'gee pee tee'],
 
   // Versioned protocols / product names with digits
-  [/\bAuth0\b/g,                    'AuthZero'],
+  [/\bAuth0\b/g,                    'AuthZiro'],
   [/\bOAuth2\.0\b/gi,               'OAuth 2 point 0'],
   [/\bOAuth2\b/gi,                  'OAuth 2'],
   [/\bSAMLv2\b/gi,                  'SAML version 2'],

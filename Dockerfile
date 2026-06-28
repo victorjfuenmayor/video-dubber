@@ -17,7 +17,6 @@ RUN NODE_OPTIONS=--max-old-space-size=400 npm run build
 ENV NODE_ENV=production
 ENV FFMPEG_PATH=ffmpeg
 ENV YT_DLP_PATH=yt-dlp
-ENV NODE_OPTIONS=--max-old-space-size=400
 
 EXPOSE 3000
 

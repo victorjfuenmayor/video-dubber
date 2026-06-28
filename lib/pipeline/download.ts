@@ -26,7 +26,7 @@ export async function downloadYouTube(url: string, jobDir: string): Promise<stri
     const ytDlp = process.env.YT_DLP_PATH ?? 'yt-dlp';
     const usingTailscale = !!process.env.TAILSCALE_EXIT_NODE;
     const args = [
-      '-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best[ext=mp4]/best',
+      '-f', 'bv*+ba/b',
       '--merge-output-format', 'mp4',
       '--extractor-args', cookiesPath ? 'youtube:player_client=web' : 'youtube:player_client=android',
       '--no-check-formats',

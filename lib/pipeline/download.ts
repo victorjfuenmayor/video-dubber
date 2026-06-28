@@ -26,10 +26,7 @@ export async function downloadYouTube(url: string, jobDir: string): Promise<stri
     const ytDlp = process.env.YT_DLP_PATH ?? 'yt-dlp';
     const usingTailscale = !!process.env.TAILSCALE_EXIT_NODE;
     const args = [
-      '-f', 'bv*+ba/b',
       '--merge-output-format', 'mp4',
-      '--extractor-args', cookiesPath ? 'youtube:player_client=web' : 'youtube:player_client=android',
-      '--no-check-formats',
       '-v',
       '--socket-timeout', '60',
       '--retries', '1',
@@ -55,7 +52,7 @@ export async function downloadYouTube(url: string, jobDir: string): Promise<stri
     proc.stderr.on('data', (d: Buffer) => { stderr += d.toString(); });
     proc.on('close', (code) => {
       if (code === 0) resolve(outPath);
-      else reject(new Error(`yt-dlp failed (${code}): ${stderr.slice(-500)}`));
+      else reject(new Error(`yt-dlp failed (${code}): ${stderr.slice(-2000)}`));
     });
     proc.on('error', (err) => reject(new Error(`yt-dlp spawn failed: ${err.message}`)));
   });

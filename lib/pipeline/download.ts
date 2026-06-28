@@ -24,16 +24,18 @@ export async function downloadYouTube(url: string, jobDir: string): Promise<stri
 
   return new Promise((resolve, reject) => {
     const ytDlp = process.env.YT_DLP_PATH ?? 'yt-dlp';
+    const usingTailscale = !!process.env.TAILSCALE_EXIT_NODE;
     const args = [
       '-f', 'best[ext=mp4]/best',
       '--merge-output-format', 'mp4',
-      '--extractor-args', 'youtube:player_client=ios,web',
+      // ios: no n-challenge needed, used when routing through residential IP (Tailscale)
+      // web: supports cookies but needs n-challenge, used for direct authenticated downloads
+      '--extractor-args', usingTailscale ? 'youtube:player_client=ios' : 'youtube:player_client=web',
       '--no-check-formats',
       '-o', outPath,
     ];
     if (cookiesPath) args.push('--cookies', cookiesPath);
-    // Route through Tailscale exit node SOCKS5 proxy when configured
-    if (process.env.TAILSCALE_EXIT_NODE) args.push('--proxy', 'socks5://127.0.0.1:1055');
+    if (usingTailscale) args.push('--proxy', 'socks5://127.0.0.1:1055');
     args.push(url);
 
     const proc = spawn(ytDlp, args, { stdio: ['ignore', 'pipe', 'pipe'] });

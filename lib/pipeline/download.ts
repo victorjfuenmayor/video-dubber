@@ -30,7 +30,7 @@ export async function downloadYouTube(url: string, jobDir: string): Promise<stri
       '--merge-output-format', 'mp4',
       // ios: no n-challenge needed, used when routing through residential IP (Tailscale)
       // web: supports cookies but needs n-challenge, used for direct authenticated downloads
-      '--extractor-args', usingTailscale ? 'youtube:player_client=ios' : 'youtube:player_client=web',
+      '--extractor-args', usingTailscale ? 'youtube:player_client=android' : 'youtube:player_client=web',
       '--no-check-formats',
       '-o', outPath,
     ];

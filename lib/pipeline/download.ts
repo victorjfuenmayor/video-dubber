@@ -25,9 +25,10 @@ export async function downloadYouTube(url: string, jobDir: string): Promise<stri
   return new Promise((resolve, reject) => {
     const ytDlp = process.env.YT_DLP_PATH ?? 'yt-dlp';
     const args = [
-      '-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best/best',
+      '-f', 'best[ext=mp4]/best',
       '--merge-output-format', 'mp4',
-      '--extractor-args', 'youtube:player_client=ios,web',
+      '--extractor-args', 'youtube:player_client=ios',
+      '--no-check-formats',
       '-o', outPath,
     ];
     if (cookiesPath) args.push('--cookies', cookiesPath);

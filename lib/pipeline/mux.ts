@@ -72,10 +72,13 @@ async function buildDubbedAudioTrack(
     const segDuration = await getAudioDuration(seg.audioFile!);
     const availableTime = totalDuration - actualStart;
 
-    if (segDuration > availableTime + 0.005) {
-      // Last segment (or any segment) would overflow video end — speed it up to fit
+    if (availableTime <= 0.005) {
+      // Segment starts at or past video end — skip it
+      cursor = actualStart;
+    } else if (segDuration > availableTime + 0.005) {
+      // Segment overflows video end — speed it up to fit
       const trimmedPath = path.join(jobDir, `seg_fit_${i}.wav`);
-      const factor = segDuration / availableTime;
+      const factor = Math.max(0.5, segDuration / availableTime);
       const atempo = factor <= 2.0
         ? `atempo=${factor.toFixed(4)}`
         : `atempo=${Math.sqrt(factor).toFixed(4)},atempo=${Math.sqrt(factor).toFixed(4)}`;

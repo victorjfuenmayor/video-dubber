@@ -12,7 +12,7 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
-RUN npm run build
+RUN NODE_OPTIONS=--max-old-space-size=400 npm run build
 
 ENV NODE_ENV=production
 ENV FFMPEG_PATH=ffmpeg

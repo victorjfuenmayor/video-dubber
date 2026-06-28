@@ -28,7 +28,7 @@ export async function downloadYouTube(url: string, jobDir: string): Promise<stri
     const args = [
       '-f', 'best[ext=mp4]/best',
       '--merge-output-format', 'mp4',
-      '--extractor-args', 'youtube:player_client=android',
+      '--extractor-args', cookiesPath ? 'youtube:player_client=web' : 'youtube:player_client=android',
       '--no-check-formats',
       '-v',
       '--socket-timeout', '60',
@@ -39,8 +39,16 @@ export async function downloadYouTube(url: string, jobDir: string): Promise<stri
     if (usingTailscale) args.push('--proxy', 'socks5://127.0.0.1:1055');
     args.push(url);
 
-    // Ensure Node.js is in PATH so yt-dlp can solve the n-challenge
-    const env = { ...process.env, PATH: `/usr/local/bin:${process.env.PATH ?? ''}` };
+    const env: NodeJS.ProcessEnv = {
+      ...process.env,
+      PATH: `/usr/local/bin:${process.env.PATH ?? ''}`,
+    };
+    // Route ALL yt-dlp traffic (including challenge solver downloads) through the proxy
+    if (usingTailscale) {
+      env.HTTPS_PROXY = 'socks5://127.0.0.1:1055';
+      env.HTTP_PROXY  = 'socks5://127.0.0.1:1055';
+      env.ALL_PROXY   = 'socks5://127.0.0.1:1055';
+    }
     const proc = spawn(ytDlp, args, { stdio: ['ignore', 'pipe', 'pipe'], env });
 
     let stderr = '';

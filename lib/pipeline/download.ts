@@ -38,7 +38,9 @@ export async function downloadYouTube(url: string, jobDir: string): Promise<stri
     if (usingTailscale) args.push('--proxy', 'socks5h://127.0.0.1:1055');
     args.push(url);
 
-    const proc = spawn(ytDlp, args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    // Ensure Node.js is in PATH so yt-dlp can solve the n-challenge
+    const env = { ...process.env, PATH: `/usr/local/bin:${process.env.PATH ?? ''}` };
+    const proc = spawn(ytDlp, args, { stdio: ['ignore', 'pipe', 'pipe'], env });
 
     let stderr = '';
     proc.stderr.on('data', (d: Buffer) => { stderr += d.toString(); });

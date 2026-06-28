@@ -30,6 +30,7 @@ export async function downloadYouTube(url: string, jobDir: string): Promise<stri
       '--merge-output-format', 'mp4',
       '--extractor-args', cookiesPath ? 'youtube:player_client=mweb' : 'youtube:player_client=android',
       '--no-check-formats',
+      '-v',
       '--socket-timeout', '60',
       '--retries', '1',
       '-o', outPath,

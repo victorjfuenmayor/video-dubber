@@ -36,7 +36,7 @@ export async function downloadYouTube(url: string, jobDir: string): Promise<stri
       '-o', outPath,
     ];
     if (cookiesPath) args.push('--cookies', cookiesPath);
-    if (usingTailscale) args.push('--proxy', 'socks5://127.0.0.1:1055');
+    // Note: proxy is set via HTTPS_PROXY/ALL_PROXY env vars above, not --proxy flag
     args.push(url);
 
     const env: NodeJS.ProcessEnv = {

@@ -35,7 +35,7 @@ export async function downloadYouTube(url: string, jobDir: string): Promise<stri
       '-o', outPath,
     ];
     if (cookiesPath) args.push('--cookies', cookiesPath);
-    if (usingTailscale) args.push('--proxy', 'socks5://127.0.0.1:1055');
+    if (usingTailscale) args.push('--proxy', 'socks5h://127.0.0.1:1055');
     args.push(url);
 
     const proc = spawn(ytDlp, args, { stdio: ['ignore', 'pipe', 'pipe'] });

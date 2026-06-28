@@ -28,7 +28,6 @@ export async function downloadYouTube(url: string, jobDir: string): Promise<stri
     const args = [
       '-f', 'best[ext=mp4]/best',
       '--merge-output-format', 'mp4',
-      '--extractor-args', usingTailscale ? 'youtube:player_client=android' : 'youtube:player_client=web',
       '--no-check-formats',
       '--socket-timeout', '60',
       '--retries', '1',

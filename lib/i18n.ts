@@ -23,6 +23,7 @@ export const t = {
     dubToSpanish:     'Dub to Spanish',
     noFile:           'No file selected',
     noUrl:            'No URL entered',
+    youtubeDisabled:  'YouTube download is not available on this server. Please download the video and upload it as a file.',
     // ProgressDisplay
     processing:       'Processing',
     connectionLost:   'Connection lost',
@@ -77,6 +78,7 @@ export const t = {
     dubToSpanish:     'Doblar al español',
     noFile:           'No se seleccionó ningún archivo',
     noUrl:            'No se ingresó ninguna URL',
+    youtubeDisabled:  'La descarga de YouTube no está disponible en este servidor. Descarga el video y súbelo como archivo.',
     // ProgressDisplay
     processing:       'Procesando',
     connectionLost:   'Conexión perdida',

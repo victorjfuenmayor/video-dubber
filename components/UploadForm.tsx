@@ -10,6 +10,8 @@ interface Props {
   disabled?: boolean;
 }
 
+const YOUTUBE_DISABLED = process.env.NEXT_PUBLIC_DISABLE_YOUTUBE === 'true';
+
 export default function UploadForm({ onJobStart, onError, disabled }: Props) {
   const { tr } = useLang();
   const [mode, setMode] = useState<'file' | 'url'>('file');
@@ -72,7 +74,9 @@ export default function UploadForm({ onJobStart, onError, disabled }: Props) {
           </svg>
           {tr.uploadFile}
         </button>
-        <button type="button" onClick={() => setMode('url')} style={tabStyle(mode === 'url')}>
+        <button type="button" onClick={() => !YOUTUBE_DISABLED && setMode('url')}
+          style={{ ...tabStyle(mode === 'url'), opacity: YOUTUBE_DISABLED ? 0.4 : 1, cursor: YOUTUBE_DISABLED ? 'not-allowed' : 'pointer' }}
+          title={YOUTUBE_DISABLED ? tr.youtubeDisabled : undefined}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/>
           </svg>

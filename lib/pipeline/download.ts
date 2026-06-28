@@ -27,12 +27,13 @@ export async function downloadYouTube(url: string, jobDir: string): Promise<stri
     const args = [
       '-f', 'best[ext=mp4]/best',
       '--merge-output-format', 'mp4',
-      // tv_embed bypasses n-challenge and supports cookies
-      '--extractor-args', 'youtube:player_client=tv_embed,ios',
+      '--extractor-args', 'youtube:player_client=ios,web',
       '--no-check-formats',
       '-o', outPath,
     ];
     if (cookiesPath) args.push('--cookies', cookiesPath);
+    // Route through Tailscale exit node SOCKS5 proxy when configured
+    if (process.env.TAILSCALE_EXIT_NODE) args.push('--proxy', 'socks5://127.0.0.1:1055');
     args.push(url);
 
     const proc = spawn(ytDlp, args, { stdio: ['ignore', 'pipe', 'pipe'] });

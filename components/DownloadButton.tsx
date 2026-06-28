@@ -1,10 +1,13 @@
 'use client';
 
+import { useLang } from './LangProvider';
+
 interface Props {
   jobId: string;
 }
 
 export default function DownloadButton({ jobId }: Props) {
+  const { tr } = useLang();
   return (
     <a href={`/api/download/${jobId}`} download
       style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', width: '100%', padding: '0.625rem 1rem', background: 'var(--green)', color: '#fff', fontSize: '0.875rem', fontWeight: 600, borderRadius: '0.75rem', textDecoration: 'none', boxSizing: 'border-box', transition: 'background 0.15s' }}
@@ -15,7 +18,7 @@ export default function DownloadButton({ jobId }: Props) {
         <polyline points="7 10 12 15 17 10"/>
         <line x1="12" y1="15" x2="12" y2="3"/>
       </svg>
-      Download dubbed video
+      {tr.downloadVideo}
     </a>
   );
 }

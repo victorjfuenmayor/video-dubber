@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useLang } from './LangProvider';
 
 interface StepState { status: 'pending' | 'running' | 'done' | 'error'; message: string; }
 
@@ -17,6 +18,7 @@ const STEPS = [
 interface Props { jobId: string; onComplete: () => void; onError: (msg: string) => void; }
 
 export default function ProgressDisplay({ jobId, onComplete, onError }: Props) {
+  const { tr } = useLang();
   const [steps, setSteps] = useState<Record<string, StepState>>(() =>
     Object.fromEntries(STEPS.map(s => [s.key, { status: 'pending', message: '' }]))
   );
@@ -29,7 +31,7 @@ export default function ProgressDisplay({ jobId, onComplete, onError }: Props) {
       if (ev.step === 'error')   { es.close(); onError(ev.message ?? 'Unknown error'); return; }
       setSteps(prev => ({ ...prev, [ev.step]: { status: (ev.status as StepState['status']) ?? 'running', message: ev.message ?? '' } }));
     };
-    es.onerror = () => { es.close(); onError('Connection lost'); };
+    es.onerror = () => { es.close(); onError(tr.connectionLost); };
     return () => es.close();
   }, [jobId, onComplete, onError]);
 
@@ -42,7 +44,7 @@ export default function ProgressDisplay({ jobId, onComplete, onError }: Props) {
       {/* Progress bar */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-muted)' }}>Processing</span>
+          <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-muted)' }}>{tr.processing}</span>
           <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--accent)' }}>{progress}%</span>
         </div>
         <div style={{ height: '0.375rem', background: 'var(--surface-2)', borderRadius: '9999px', overflow: 'hidden' }}>
@@ -84,7 +86,7 @@ export default function ProgressDisplay({ jobId, onComplete, onError }: Props) {
                 <p style={{ fontSize: '0.8125rem', fontWeight: 500, lineHeight: 1, margin: 0,
                   color: running ? 'var(--accent)' : done ? 'var(--text)' : error ? 'var(--red-text)' : 'var(--text-faint)',
                 }}>
-                  {step.label}
+                  {tr.steps[step.key as keyof typeof tr.steps]}
                 </p>
                 {s.message && (
                   <p style={{ fontSize: '0.6875rem', color: 'var(--text-faint)', marginTop: '0.2rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

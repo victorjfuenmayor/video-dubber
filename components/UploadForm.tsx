@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { VOICES, DEFAULT_VOICE_ID } from '@/lib/voices';
+import { useLang } from './LangProvider';
 
 interface Props {
   onJobStart: (jobId: string) => void;
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export default function UploadForm({ onJobStart, onError, disabled }: Props) {
+  const { tr } = useLang();
   const [mode, setMode] = useState<'file' | 'url'>('file');
   const [url, setUrl] = useState('');
   const [voiceId, setVoiceId] = useState<string>(DEFAULT_VOICE_ID);
@@ -24,13 +26,13 @@ export default function UploadForm({ onJobStart, onError, disabled }: Props) {
       let res: Response;
       if (mode === 'file') {
         const file = fileRef.current?.files?.[0];
-        if (!file) throw new Error('No file selected');
+        if (!file) throw new Error(tr.noFile);
         const form = new FormData();
         form.append('file', file);
         form.append('voiceId', voiceId);
         res = await fetch('/api/dub', { method: 'POST', body: form });
       } else {
-        if (!url.trim()) throw new Error('No URL entered');
+        if (!url.trim()) throw new Error(tr.noUrl);
         res = await fetch('/api/dub', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -68,13 +70,13 @@ export default function UploadForm({ onJobStart, onError, disabled }: Props) {
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
           </svg>
-          Upload file
+          {tr.uploadFile}
         </button>
         <button type="button" onClick={() => setMode('url')} style={tabStyle(mode === 'url')}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/>
           </svg>
-          YouTube URL
+          {tr.youtubeUrl}
         </button>
       </div>
 
@@ -87,9 +89,9 @@ export default function UploadForm({ onJobStart, onError, disabled }: Props) {
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
           </svg>
           <span style={{ fontSize: '0.8125rem', color: fileName ? 'var(--text)' : 'var(--text-muted)', fontWeight: fileName ? 500 : 400 }}>
-            {fileName || 'Click to select video'}
+            {fileName || tr.clickToSelect}
           </span>
-          <span style={{ fontSize: '0.6875rem', color: 'var(--text-faint)' }}>MP4, MOV, AVI, MKV</span>
+          <span style={{ fontSize: '0.6875rem', color: 'var(--text-faint)' }}>{tr.fileTypes}</span>
           <input ref={fileRef} type="file" accept="video/*" style={{ display: 'none' }} required
             onChange={e => setFileName(e.target.files?.[0]?.name ?? '')} />
         </label>
@@ -111,7 +113,7 @@ export default function UploadForm({ onJobStart, onError, disabled }: Props) {
 
       {/* Voice selector */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        <label style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Voice</label>
+        <label style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{tr.voice}</label>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
           {VOICES.map((v) => {
             const sel = voiceId === v.id;
@@ -120,7 +122,7 @@ export default function UploadForm({ onJobStart, onError, disabled }: Props) {
                 style={{ padding: '0.625rem 0.5rem', borderRadius: '0.75rem', fontSize: '0.8125rem', textAlign: 'center', cursor: 'pointer', border: `1.5px solid ${sel ? 'var(--accent)' : 'var(--border)'}`, background: sel ? 'var(--accent)' : 'var(--surface-2)', color: sel ? '#fff' : 'var(--text)', transition: 'all 0.15s' }}>
                 <span style={{ display: 'block', fontWeight: 600, lineHeight: 1.2 }}>{v.name}</span>
                 <span style={{ display: 'block', fontSize: '0.6875rem', marginTop: '0.2rem', color: sel ? 'rgba(255,255,255,0.7)' : 'var(--text-faint)' }}>
-                  {v.gender === 'female' ? 'Female' : 'Male'}
+                  {v.gender === 'female' ? tr.female : tr.male}
                 </span>
               </button>
             );
@@ -136,14 +138,14 @@ export default function UploadForm({ onJobStart, onError, disabled }: Props) {
         {loading ? (
           <>
             <span style={{ width: '1rem', height: '1rem', border: `2px solid var(--spinner-border)`, borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'block' }} />
-            Starting…
+            {tr.starting}
           </>
         ) : (
           <>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polygon points="5 3 19 12 5 21 5 3"/>
             </svg>
-            Dub to Spanish
+            {tr.dubToSpanish}
           </>
         )}
       </button>

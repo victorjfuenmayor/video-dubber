@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useLang } from './LangProvider';
 
-const TYPES = ['Suggestion', 'Bug report', 'General feedback'] as const;
+const TYPES = ['suggestion', 'bugReport', 'generalFeedback'] as const;
 type FeedbackType = typeof TYPES[number];
 
 interface Props {
@@ -10,7 +11,8 @@ interface Props {
 }
 
 export default function FeedbackModal({ onClose }: Props) {
-  const [type, setType]       = useState<FeedbackType>('Suggestion');
+  const { tr } = useLang();
+  const [type, setType]       = useState<FeedbackType>('suggestion');
   const [message, setMessage] = useState('');
   const [name, setName]       = useState('');
   const [email, setEmail]     = useState('');
@@ -62,8 +64,8 @@ export default function FeedbackModal({ onClose }: Props) {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.125rem 1.375rem', borderBottom: '1px solid var(--border)' }}>
           <div>
-            <h2 style={{ margin: 0, fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text)' }}>Share feedback</h2>
-            <p style={{ margin: '0.125rem 0 0', fontSize: '0.75rem', color: 'var(--text-muted)' }}>Help us improve Video Dubber</p>
+            <h2 style={{ margin: 0, fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text)' }}>{tr.shareFeeback}</h2>
+            <p style={{ margin: '0.125rem 0 0', fontSize: '0.75rem', color: 'var(--text-muted)' }}>{tr.helpImprove}</p>
           </div>
           <button onClick={onClose}
             style={{ width: '1.875rem', height: '1.875rem', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', color: 'var(--text-faint)', cursor: 'pointer', borderRadius: '0.5rem' }}
@@ -84,9 +86,9 @@ export default function FeedbackModal({ onClose }: Props) {
                   <polyline points="20 6 9 17 4 12"/>
                 </svg>
               </div>
-              <p style={{ margin: 0, fontWeight: 600, color: 'var(--text)', fontSize: '0.9375rem' }}>Thank you!</p>
-              <p style={{ margin: '0.375rem 0 1.5rem', fontSize: '0.8125rem', color: 'var(--text-muted)' }}>Your feedback has been sent.</p>
-              <button onClick={onClose} style={{ padding: '0.5rem 1.25rem', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '0.625rem', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>Done</button>
+              <p style={{ margin: 0, fontWeight: 600, color: 'var(--text)', fontSize: '0.9375rem' }}>{tr.thankYou}</p>
+              <p style={{ margin: '0.375rem 0 1.5rem', fontSize: '0.8125rem', color: 'var(--text-muted)' }}>{tr.feedbackSent}</p>
+              <button onClick={onClose} style={{ padding: '0.5rem 1.25rem', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '0.625rem', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>{tr.done}</button>
             </div>
           ) : (
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
@@ -96,16 +98,16 @@ export default function FeedbackModal({ onClose }: Props) {
                 {TYPES.map((t) => (
                   <button key={t} type="button" onClick={() => setType(t)}
                     style={{ flex: 1, padding: '0.375rem 0.25rem', fontSize: '0.75rem', fontWeight: 500, borderRadius: '0.5rem', cursor: 'pointer', border: `1.5px solid ${type === t ? 'var(--accent)' : 'var(--border)'}`, background: type === t ? 'var(--accent-bg)' : 'var(--surface-2)', color: type === t ? 'var(--accent-text)' : 'var(--text-muted)', transition: 'all 0.15s' }}>
-                    {t}
+                    {tr[t]}
                   </button>
                 ))}
               </div>
 
               {/* Message */}
               <div>
-                <label style={{ display: 'block', fontSize: '0.6875rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.375rem' }}>Message *</label>
+                <label style={{ display: 'block', fontSize: '0.6875rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.375rem' }}>{tr.messageLabel}</label>
                 <textarea value={message} onChange={e => setMessage(e.target.value)} required rows={4}
-                  placeholder="Describe your suggestion or report..."
+                  placeholder={tr.messagePlaceholder}
                   style={{ ...inputStyle, resize: 'vertical', minHeight: '6rem', lineHeight: 1.5 }}
                   onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
                   onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')} />
@@ -114,15 +116,15 @@ export default function FeedbackModal({ onClose }: Props) {
               {/* Name + Email */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.625rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.6875rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.375rem' }}>Name</label>
-                  <input value={name} onChange={e => setName(e.target.value)} placeholder="Optional"
+                  <label style={{ display: 'block', fontSize: '0.6875rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.375rem' }}>{tr.nameLabel}</label>
+                  <input value={name} onChange={e => setName(e.target.value)} placeholder={tr.optional}
                     style={inputStyle}
                     onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
                     onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')} />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.6875rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.375rem' }}>Email</label>
-                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Optional"
+                  <label style={{ display: 'block', fontSize: '0.6875rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.375rem' }}>{tr.emailLabel}</label>
+                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder={tr.optional}
                     style={inputStyle}
                     onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
                     onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')} />
@@ -138,13 +140,13 @@ export default function FeedbackModal({ onClose }: Props) {
               <div style={{ display: 'flex', gap: '0.625rem', justifyContent: 'flex-end', paddingTop: '0.25rem' }}>
                 <button type="button" onClick={onClose}
                   style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', fontWeight: 500, border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--text-muted)', borderRadius: '0.625rem', cursor: 'pointer' }}>
-                  Cancel
+                  {tr.cancel}
                 </button>
                 <button type="submit" disabled={status === 'sending' || !message.trim()}
                   style={{ padding: '0.5rem 1.25rem', fontSize: '0.875rem', fontWeight: 600, background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '0.625rem', cursor: status === 'sending' ? 'wait' : 'pointer', opacity: !message.trim() ? 0.5 : 1, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   {status === 'sending' ? (
-                    <><span style={{ width: '0.875rem', height: '0.875rem', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'block' }} /> Sending…</>
-                  ) : 'Send feedback'}
+                    <><span style={{ width: '0.875rem', height: '0.875rem', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'block' }} /> {tr.sending}</>
+                  ) : tr.sendFeedback}
                 </button>
               </div>
             </form>

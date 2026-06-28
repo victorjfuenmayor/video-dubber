@@ -6,10 +6,12 @@ import ProgressDisplay from '@/components/ProgressDisplay';
 import DownloadButton from '@/components/DownloadButton';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import FeedbackModal from '@/components/FeedbackModal';
+import { LangProvider, useLang } from '@/components/LangProvider';
 
 type AppState = 'idle' | 'processing' | 'done' | 'error';
 
-export default function Home() {
+function PageContent() {
+  const { lang, tr, toggle } = useLang();
   const [state, setState]           = useState<AppState>('idle');
   const [showFeedback, setFeedback] = useState(false);
   const [jobId, setJobId] = useState<string | null>(null);
@@ -39,14 +41,21 @@ export default function Home() {
                 <h1 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.01em' }}>Video Dubber</h1>
               </div>
               <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-                <span style={{ fontWeight: 500, color: 'var(--text)' }}>English</span>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
-                </svg>
-                <span style={{ fontWeight: 500, color: 'var(--text)' }}>Latin American Spanish</span>
+                <span style={{ fontWeight: 500, color: 'var(--text)' }}>{tr.langLabel}</span>
               </p>
             </div>
-            <ThemeToggle />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <button
+                onClick={toggle}
+                style={{ width: '2.25rem', height: '2.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '0.5rem', border: 'none', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', transition: 'background 0.15s', fontSize: '0.6875rem', fontWeight: 600 }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-2)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                aria-label="Toggle language"
+              >
+                {lang === 'en' ? 'EN' : 'ES'}
+              </button>
+              <ThemeToggle />
+            </div>
           </div>
 
           {/* Body */}
@@ -68,15 +77,15 @@ export default function Home() {
                     </svg>
                   </div>
                   <div>
-                    <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text)' }}>Dubbing complete</p>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Your video is ready to download</p>
+                    <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text)' }}>{tr.dubbingComplete}</p>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{tr.videoReady}</p>
                   </div>
                 </div>
                 <DownloadButton jobId={jobId} />
                 <button onClick={handleReset} style={{ width: '100%', fontSize: '0.8125rem', color: 'var(--text-faint)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem 0' }}
                   onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-muted)')}
                   onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-faint)')}>
-                  Dub another video
+                  {tr.dubAnother}
                 </button>
               </div>
             )}
@@ -92,7 +101,7 @@ export default function Home() {
                 <button onClick={handleReset} style={{ width: '100%', fontSize: '0.8125rem', color: 'var(--text-faint)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem 0' }}
                   onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-muted)')}
                   onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-faint)')}>
-                  Try again
+                  {tr.tryAgain}
                 </button>
               </div>
             )}
@@ -101,7 +110,7 @@ export default function Home() {
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '1rem', padding: '0 0.25rem' }}>
           <p style={{ margin: 0, fontSize: '0.6875rem', color: 'var(--text-faint)' }}>
-            Powered by Groq · ElevenLabs · Claude
+            {tr.poweredBy}
           </p>
           <button onClick={() => setFeedback(true)}
             style={{ fontSize: '0.6875rem', color: 'var(--text-faint)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem 0', display: 'flex', alignItems: 'center', gap: '0.3rem', transition: 'color 0.15s' }}
@@ -110,12 +119,20 @@ export default function Home() {
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
             </svg>
-            Feedback
+            {tr.feedback}
           </button>
         </div>
 
         {showFeedback && <FeedbackModal onClose={() => setFeedback(false)} />}
       </div>
     </main>
+  );
+}
+
+export default function Home() {
+  return (
+    <LangProvider>
+      <PageContent />
+    </LangProvider>
   );
 }

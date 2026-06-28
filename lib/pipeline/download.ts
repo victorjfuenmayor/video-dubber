@@ -27,9 +27,8 @@ export async function downloadYouTube(url: string, jobDir: string): Promise<stri
     const args = [
       '-f', 'best[ext=mp4]/best',
       '--merge-output-format', 'mp4',
-      // ios client bypasses n-challenge but doesn't support cookies;
-      // web client supports cookies and uses Node.js to solve n-challenge.
-      '--extractor-args', cookiesPath ? 'youtube:player_client=web' : 'youtube:player_client=ios',
+      // tv_embed bypasses n-challenge and supports cookies
+      '--extractor-args', 'youtube:player_client=tv_embed,ios',
       '--no-check-formats',
       '-o', outPath,
     ];

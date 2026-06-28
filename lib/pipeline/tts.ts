@@ -17,10 +17,10 @@ const PRONUNCIATION_MAP: [RegExp, string][] = [
 
   // Acronyms — English letter-words so multilingual model reads them in English
   [/\bMFA\b/g,                      'em eff ay'],
-  [/\bMCP\b/g,                      'em see pee'],
+  [/\bMCP\b/g,                      'Emsipi'],
 
   // AI product names — use English letter-words so multilingual model reads them in English
-  [/\bChatGPT\b/gi,                 'chat gee pee tee'],
+  [/\bChatGPT\b/gi,                 'Chatgeepeetee'],
   [/\bGPT-?4o\b/gi,                 'gee pee tee four oh'],
   [/\bGPT-?4\b/gi,                  'gee pee tee four'],
   [/\bGPT-?3\.5\b/gi,               'gee pee tee three point five'],

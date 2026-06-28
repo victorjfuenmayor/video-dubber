@@ -28,7 +28,7 @@ export async function downloadYouTube(url: string, jobDir: string): Promise<stri
     const args = [
       '-f', 'best[ext=mp4]/best',
       '--merge-output-format', 'mp4',
-      '--extractor-args', cookiesPath ? 'youtube:player_client=mweb' : 'youtube:player_client=android',
+      '--extractor-args', 'youtube:player_client=android',
       '--no-check-formats',
       '-v',
       '--socket-timeout', '60',
@@ -36,7 +36,7 @@ export async function downloadYouTube(url: string, jobDir: string): Promise<stri
       '-o', outPath,
     ];
     if (cookiesPath) args.push('--cookies', cookiesPath);
-    if (usingTailscale) args.push('--proxy', 'socks5h://127.0.0.1:1055');
+    if (usingTailscale) args.push('--proxy', 'socks5://127.0.0.1:1055');
     args.push(url);
 
     // Ensure Node.js is in PATH so yt-dlp can solve the n-challenge

@@ -52,7 +52,11 @@ export async function downloadYouTube(url: string, jobDir: string): Promise<stri
     proc.stderr.on('data', (d: Buffer) => { stderr += d.toString(); });
     proc.on('close', (code) => {
       if (code === 0) resolve(outPath);
-      else reject(new Error(`yt-dlp failed (${code}): ${stderr.slice(-2000)}`));
+      else {
+        // Sanitize: keep last 2000 chars, replace control chars that break SSE/JSON
+        const clean = stderr.slice(-2000).replace(/[\x00-\x1f\x7f]/g, ' ');
+        reject(new Error(`yt-dlp failed (${code}): ${clean}`));
+      }
     });
     proc.on('error', (err) => reject(new Error(`yt-dlp spawn failed: ${err.message}`)));
   });

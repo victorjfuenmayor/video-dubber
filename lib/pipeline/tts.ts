@@ -17,14 +17,14 @@ const PRONUNCIATION_MAP: [RegExp, string][] = [
 
   // Acronyms — English letter-words so multilingual model reads them in English
   [/\bMFA\b/g,                      'em eff ay'],
-  [/\bMCP\b/g,                      'Emsipi'],
+  [/\bMCP(?!\w)/g,                   'Emsipi'],
 
   // AI product names — use English letter-words so multilingual model reads them in English
-  [/\bChatGPT\b/gi,                 'Chatgeepeetee'],
-  [/\bGPT-?4o\b/gi,                 'gee pee tee four oh'],
-  [/\bGPT-?4\b/gi,                  'gee pee tee four'],
-  [/\bGPT-?3\.5\b/gi,               'gee pee tee three point five'],
-  [/\bGPT\b/g,                      'gee pee tee'],
+  [/\bChatGPT(?!\w)/gi,             'Chatgeepeetee'],
+  [/\bGPT-?4o(?!\w)/gi,             'gee pee tee four oh'],
+  [/\bGPT-?4(?!\w)/gi,              'gee pee tee four'],
+  [/\bGPT-?3\.5(?!\w)/gi,           'gee pee tee three point five'],
+  [/\bGPT(?!\w)/g,                  'gee pee tee'],
 
   // Versioned protocols / product names with digits
   [/\bAuth0\b/g,                    'AuthZiro'],

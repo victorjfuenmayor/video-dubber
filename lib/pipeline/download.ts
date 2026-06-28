@@ -30,7 +30,8 @@ export async function downloadYouTube(url: string, jobDir: string): Promise<stri
       '--merge-output-format', 'mp4',
       '--extractor-args', usingTailscale ? 'youtube:player_client=android' : 'youtube:player_client=web',
       '--no-check-formats',
-      '--socket-timeout', '30',
+      '--socket-timeout', '60',
+      '--retries', '1',
       '-o', outPath,
     ];
     if (cookiesPath) args.push('--cookies', cookiesPath);

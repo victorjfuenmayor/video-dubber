@@ -10,6 +10,8 @@ if [ -n "$TAILSCALE_AUTH_KEY" ] && [ -n "$TAILSCALE_EXIT_NODE" ]; then
     --exit-node-allow-lan-access=true \
     --hostname="video-dubber-render" &
   echo "Tailscale connecting in background, starting app..."
+  sleep 5
+  tailscale ping "$TAILSCALE_EXIT_NODE" || echo "Tailscale ping to exit node FAILED"
 fi
 
 exec npm start

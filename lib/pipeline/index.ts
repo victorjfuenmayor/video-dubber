@@ -9,6 +9,7 @@ import { mergeSentenceSegments } from './merge-sentences';
 import { generateTTS, DEFAULT_VOICE_ID } from './tts';
 import { speedMatchSegments } from './timing';
 import { muxDubbedVideo } from './mux';
+import type { TargetLang } from '@/lib/voices';
 
 export type ProgressEvent = {
   step: string;
@@ -21,10 +22,13 @@ export async function runPipeline(
   jobId: string,
   events: EventEmitter,
   tmpBase: string,
-  voiceId: string = DEFAULT_VOICE_ID
+  voiceId: string = DEFAULT_VOICE_ID,
+  targetLang: TargetLang = 'es',
 ): Promise<string> {
   const jobDir = path.join(tmpBase, jobId);
   fs.mkdirSync(jobDir, { recursive: true });
+
+  const langLabel = targetLang === 'pt-BR' ? 'Portuguese' : 'Spanish';
 
   const emit = (step: string, status: 'running' | 'done' | 'error', message: string) => {
     events.emit('progress', { step, status, message } satisfies ProgressEvent);
@@ -54,13 +58,13 @@ export async function runPipeline(
     const sentenceSegments = mergeSentenceSegments(segments);
 
     emit('translate', 'running', `Translating ${sentenceSegments.length} sentences with timing calibration...`);
-    const translated = await translateSegments(sentenceSegments);
+    const translated = await translateSegments(sentenceSegments, targetLang);
     emit('translate', 'done', 'Translation complete');
 
     // Step 5: TTS — no further merging needed, translation is already sentence-level
-    emit('tts', 'running', `Generating Spanish audio for ${translated.length} sentences...`);
-    const withAudio = await generateTTS(translated, jobDir, voiceId);
-    emit('tts', 'done', 'Spanish audio generated');
+    emit('tts', 'running', `Generating ${langLabel} audio for ${translated.length} sentences...`);
+    const withAudio = await generateTTS(translated, jobDir, voiceId, targetLang);
+    emit('tts', 'done', `${langLabel} audio generated`);
 
     // Step 6: Speed-match
     emit('timing', 'running', 'Adjusting audio timing...');

@@ -7,6 +7,7 @@ import DownloadButton from '@/components/DownloadButton';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import FeedbackModal from '@/components/FeedbackModal';
 import { LangProvider, useLang } from '@/components/LangProvider';
+import type { TargetLang } from '@/lib/voices';
 
 type AppState = 'idle' | 'processing' | 'done' | 'error';
 
@@ -16,11 +17,16 @@ function PageContent() {
   const [showFeedback, setFeedback] = useState(false);
   const [jobId, setJobId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [targetLang, setTargetLang] = useState<TargetLang>('es');
 
   const handleJobStart = (id: string) => { setJobId(id); setState('processing'); setError(null); };
   const handleComplete = useCallback(() => setState('done'), []);
   const handleError = useCallback((msg: string) => { setError(msg); setState('error'); }, []);
   const handleReset = () => { setState('idle'); setJobId(null); setError(null); };
+
+  const headerLangLabel = targetLang === 'pt-BR' ? tr.langLabelPt : tr.langLabelEs;
+
+  const langButtonLabel = lang === 'en' ? 'EN' : lang === 'es' ? 'ES' : 'PT';
 
   return (
     <main style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
@@ -41,7 +47,7 @@ function PageContent() {
                 <h1 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.01em' }}>Video Dubber</h1>
               </div>
               <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-                <span style={{ fontWeight: 500, color: 'var(--text)' }}>{tr.langLabel}</span>
+                <span style={{ fontWeight: 500, color: 'var(--text)' }}>{headerLangLabel}</span>
               </p>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
@@ -52,7 +58,7 @@ function PageContent() {
                 onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                 aria-label="Toggle language"
               >
-                {lang === 'en' ? 'EN' : 'ES'}
+                {langButtonLabel}
               </button>
               <ThemeToggle />
             </div>
@@ -61,7 +67,11 @@ function PageContent() {
           {/* Body */}
           <div style={{ padding: '1.25rem 1.5rem' }}>
             {state === 'idle' && (
-              <UploadForm onJobStart={handleJobStart} onError={handleError} />
+              <UploadForm
+                onJobStart={handleJobStart}
+                onError={handleError}
+                onTargetLangChange={setTargetLang}
+              />
             )}
 
             {state === 'processing' && jobId && (

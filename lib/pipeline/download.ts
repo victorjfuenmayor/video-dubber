@@ -26,10 +26,11 @@ export async function downloadYouTube(url: string, jobDir: string): Promise<stri
     const ytDlp = process.env.YT_DLP_PATH ?? 'yt-dlp';
     const usingTailscale = !!process.env.TAILSCALE_EXIT_NODE;
     const args = [
+      '-f', 'bv*+ba/b',
       '--merge-output-format', 'mp4',
-      '-v',
+      '--extractor-args', cookiesPath ? 'youtube:player_client=web' : 'youtube:player_client=android',
+      '--no-check-formats',
       '--socket-timeout', '60',
-      '--retries', '1',
       '-o', outPath,
     ];
     if (cookiesPath) args.push('--cookies', cookiesPath);

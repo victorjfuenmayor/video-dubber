@@ -5,22 +5,16 @@ import { useLang } from './LangProvider';
 
 interface StepState { status: 'pending' | 'running' | 'done' | 'error'; message: string; }
 
-const STEPS = [
-  { key: 'download',      label: 'Download'      },
-  { key: 'extract_audio', label: 'Extract Audio'  },
-  { key: 'transcribe',    label: 'Transcribe'     },
-  { key: 'translate',     label: 'Translate'      },
-  { key: 'tts',           label: 'Voice'          },
-  { key: 'timing',        label: 'Timing'         },
-  { key: 'mux',           label: 'Assemble'       },
-];
+const DUB_STEPS = ['download', 'extract_audio', 'transcribe', 'translate', 'tts', 'timing', 'mux'];
+const SUB_STEPS = ['download', 'extract_audio', 'transcribe', 'translate', 'subtitle_burn'];
 
-interface Props { jobId: string; onComplete: () => void; onError: (msg: string) => void; onCancel: () => void; }
+interface Props { jobId: string; onComplete: () => void; onError: (msg: string) => void; onCancel: () => void; mode?: 'dub' | 'subtitle'; }
 
-export default function ProgressDisplay({ jobId, onComplete, onError, onCancel }: Props) {
+export default function ProgressDisplay({ jobId, onComplete, onError, onCancel, mode = 'dub' }: Props) {
   const { tr } = useLang();
+  const stepKeys = mode === 'subtitle' ? SUB_STEPS : DUB_STEPS;
   const [steps, setSteps] = useState<Record<string, StepState>>(() =>
-    Object.fromEntries(STEPS.map(s => [s.key, { status: 'pending', message: '' }]))
+    Object.fromEntries(stepKeys.map(k => [k, { status: 'pending', message: '' }]))
   );
 
   useEffect(() => {
@@ -36,7 +30,7 @@ export default function ProgressDisplay({ jobId, onComplete, onError, onCancel }
   }, [jobId, onComplete, onError]);
 
   const doneCount = Object.values(steps).filter(s => s.status === 'done').length;
-  const progress = Math.round((doneCount / STEPS.length) * 100);
+  const progress = Math.round((doneCount / stepKeys.length) * 100);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.125rem' }}>
@@ -54,8 +48,9 @@ export default function ProgressDisplay({ jobId, onComplete, onError, onCancel }
 
       {/* Steps */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-        {STEPS.map(step => {
-          const s = steps[step.key];
+        {stepKeys.map(key => {
+          const step = { key };
+          const s = steps[key] ?? { status: 'pending', message: '' };
           const running = s.status === 'running';
           const done    = s.status === 'done';
           const error   = s.status === 'error';
@@ -86,7 +81,7 @@ export default function ProgressDisplay({ jobId, onComplete, onError, onCancel }
                 <p style={{ fontSize: '0.8125rem', fontWeight: 500, lineHeight: 1, margin: 0,
                   color: running ? 'var(--accent)' : done ? 'var(--text)' : error ? 'var(--red-text)' : 'var(--text-faint)',
                 }}>
-                  {tr.steps[step.key as keyof typeof tr.steps]}
+                  {tr.steps[key as keyof typeof tr.steps]}
                 </p>
                 {s.message && (
                   <p style={{ fontSize: '0.6875rem', color: 'var(--text-faint)', marginTop: '0.2rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

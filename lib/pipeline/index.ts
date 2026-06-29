@@ -9,8 +9,11 @@ import { mergeSentenceSegments } from './merge-sentences';
 import { generateTTS, DEFAULT_VOICE_ID } from './tts';
 import { speedMatchSegments } from './timing';
 import { muxDubbedVideo } from './mux';
+import { generateAssFile, burnSubtitles } from './subtitle-burn';
 import { getJob } from '@/lib/jobs';
 import type { TargetLang } from '@/lib/voices';
+
+export type PipelineMode = 'dub' | 'subtitle';
 
 export type ProgressEvent = {
   step: string;
@@ -25,6 +28,7 @@ export async function runPipeline(
   tmpBase: string,
   voiceId: string = DEFAULT_VOICE_ID,
   targetLang: TargetLang = 'es',
+  mode: PipelineMode = 'dub',
 ): Promise<string> {
   const jobDir = path.join(tmpBase, jobId);
   fs.mkdirSync(jobDir, { recursive: true });
@@ -65,19 +69,28 @@ export async function runPipeline(
     emit('translate', 'done', 'Translation complete');
     checkCancelled();
 
-    emit('tts', 'running', `Generating ${langLabel} audio for ${translated.length} sentences...`);
-    const withAudio = await generateTTS(translated, jobDir, voiceId, targetLang);
-    emit('tts', 'done', `${langLabel} audio generated`);
-    checkCancelled();
+    let outputPath: string;
 
-    emit('timing', 'running', 'Adjusting audio timing...');
-    const timed = await speedMatchSegments(withAudio, jobDir);
-    emit('timing', 'done', 'Timing adjusted');
-    checkCancelled();
+    if (mode === 'subtitle') {
+      emit('subtitle_burn', 'running', 'Burning subtitles into video...');
+      const assPath = await generateAssFile(translated, jobDir);
+      outputPath = await burnSubtitles(videoPath, assPath, jobDir);
+      emit('subtitle_burn', 'done', 'Subtitles burned');
+    } else {
+      emit('tts', 'running', `Generating ${langLabel} audio for ${translated.length} sentences...`);
+      const withAudio = await generateTTS(translated, jobDir, voiceId, targetLang);
+      emit('tts', 'done', `${langLabel} audio generated`);
+      checkCancelled();
 
-    emit('mux', 'running', 'Assembling final video...');
-    const outputPath = await muxDubbedVideo(videoPath, timed, jobDir);
-    emit('mux', 'done', 'Video assembled');
+      emit('timing', 'running', 'Adjusting audio timing...');
+      const timed = await speedMatchSegments(withAudio, jobDir);
+      emit('timing', 'done', 'Timing adjusted');
+      checkCancelled();
+
+      emit('mux', 'running', 'Assembling final video...');
+      outputPath = await muxDubbedVideo(videoPath, timed, jobDir);
+      emit('mux', 'done', 'Video assembled');
+    }
 
     events.emit('complete', { outputPath });
     return outputPath;

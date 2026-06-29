@@ -3,20 +3,23 @@
 import { useState, useRef } from 'react';
 import { DEFAULT_VOICE_ID, getVoicesByLang } from '@/lib/voices';
 import type { TargetLang } from '@/lib/voices';
+import type { PipelineMode } from '@/lib/pipeline';
 import { useLang } from './LangProvider';
 
 interface Props {
   onJobStart: (jobId: string) => void;
   onError: (msg: string) => void;
   onTargetLangChange?: (lang: TargetLang) => void;
+  onModeChange?: (mode: PipelineMode) => void;
   disabled?: boolean;
 }
 
 const YOUTUBE_DISABLED = process.env.NEXT_PUBLIC_DISABLE_YOUTUBE === 'true';
 
-export default function UploadForm({ onJobStart, onError, onTargetLangChange, disabled }: Props) {
+export default function UploadForm({ onJobStart, onError, onTargetLangChange, onModeChange, disabled }: Props) {
   const { tr } = useLang();
-  const [mode, setMode] = useState<'file' | 'url'>('file');
+  const [inputMode, setInputMode] = useState<'file' | 'url'>('file');
+  const [pipelineMode, setPipelineMode] = useState<PipelineMode>('dub');
   const [url, setUrl] = useState('');
   const [targetLang, setTargetLang] = useState<TargetLang>('es');
   const voices = getVoicesByLang(targetLang);
@@ -27,10 +30,14 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, di
 
   function handleTargetLangChange(lang: TargetLang) {
     setTargetLang(lang);
-    // Reset to first voice of the new language
     const newVoices = getVoicesByLang(lang);
     setVoiceId(newVoices[0]?.id ?? DEFAULT_VOICE_ID);
     onTargetLangChange?.(lang);
+  }
+
+  function handlePipelineModeChange(m: PipelineMode) {
+    setPipelineMode(m);
+    onModeChange?.(m);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -38,20 +45,21 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, di
     setLoading(true);
     try {
       let res: Response;
-      if (mode === 'file') {
+      if (inputMode === 'file') {
         const file = fileRef.current?.files?.[0];
         if (!file) throw new Error(tr.noFile);
         const form = new FormData();
         form.append('file', file);
         form.append('voiceId', voiceId);
         form.append('targetLang', targetLang);
+        form.append('mode', pipelineMode);
         res = await fetch('/api/dub', { method: 'POST', body: form });
       } else {
         if (!url.trim()) throw new Error(tr.noUrl);
         res = await fetch('/api/dub', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: url.trim(), voiceId, targetLang }),
+          body: JSON.stringify({ url: url.trim(), voiceId, targetLang, mode: pipelineMode }),
         });
       }
       if (!res.ok) {
@@ -85,21 +93,23 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, di
     boxShadow: 'none',
   });
 
-  const submitLabel = targetLang === 'pt-BR' ? tr.dubToPortuguese : tr.dubToSpanish;
+  const submitLabel = pipelineMode === 'subtitle'
+    ? (targetLang === 'pt-BR' ? tr.subtitleToPortuguese : tr.subtitleToSpanish)
+    : (targetLang === 'pt-BR' ? tr.dubToPortuguese : tr.dubToSpanish);
 
   return (
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.125rem' }}>
 
       {/* Mode tabs */}
       <div style={{ display: 'flex', padding: '0.25rem', background: 'var(--surface-2)', borderRadius: '0.75rem', gap: '0.25rem' }}>
-        <button type="button" onClick={() => setMode('file')} style={tabStyle(mode === 'file')}>
+        <button type="button" onClick={() => setInputMode('file')} style={tabStyle(inputMode === 'file')}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
           </svg>
           {tr.uploadFile}
         </button>
-        <button type="button" onClick={() => !YOUTUBE_DISABLED && setMode('url')}
-          style={{ ...tabStyle(mode === 'url'), opacity: YOUTUBE_DISABLED ? 0.4 : 1, cursor: YOUTUBE_DISABLED ? 'not-allowed' : 'pointer' }}
+        <button type="button" onClick={() => !YOUTUBE_DISABLED && setInputMode('url')}
+          style={{ ...tabStyle(inputMode === 'url'), opacity: YOUTUBE_DISABLED ? 0.4 : 1, cursor: YOUTUBE_DISABLED ? 'not-allowed' : 'pointer' }}
           title={YOUTUBE_DISABLED ? tr.youtubeDisabled : undefined}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/>
@@ -121,8 +131,21 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, di
         </div>
       </div>
 
+      {/* Pipeline mode toggle */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+        <label style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{tr.modeLabel}</label>
+        <div style={{ display: 'flex', padding: '0.2rem', background: 'var(--surface-2)', borderRadius: '0.6rem', gap: '0.2rem' }}>
+          <button type="button" onClick={() => handlePipelineModeChange('dub')} style={dubLangTabStyle(pipelineMode === 'dub')}>
+            {tr.modeDub}
+          </button>
+          <button type="button" onClick={() => handlePipelineModeChange('subtitle')} style={dubLangTabStyle(pipelineMode === 'subtitle')}>
+            {tr.modeSub}
+          </button>
+        </div>
+      </div>
+
       {/* Input */}
-      {mode === 'file' ? (
+      {inputMode === 'file' ? (
         <label key="file" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '7rem', border: '2px dashed var(--border-2)', borderRadius: '0.75rem', cursor: 'pointer', transition: 'all 0.15s', gap: '0.375rem' }}
           onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.background = 'var(--accent-bg)'; }}
           onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-2)'; e.currentTarget.style.background = 'transparent'; }}>
@@ -136,7 +159,7 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, di
           <input ref={fileRef} type="file" accept="video/*" style={{ display: 'none' }} required
             onChange={e => setFileName(e.target.files?.[0]?.name ?? '')} />
         </label>
-      ) : (
+      ) : inputMode === 'url' ? (
         <div key="url" style={{ position: 'relative' }}>
           <div style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-faint)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -150,10 +173,10 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, di
             onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none'; }}
             required />
         </div>
-      )}
+      ) : null}
 
-      {/* Voice selector */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      {/* Voice selector — hidden for subtitle mode */}
+      {pipelineMode === 'dub' && <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         <label style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{tr.voice}</label>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
           {voices.map((v) => {
@@ -169,7 +192,7 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, di
             );
           })}
         </div>
-      </div>
+      </div>}
 
       {/* Submit */}
       <button type="submit" disabled={disabled || loading}

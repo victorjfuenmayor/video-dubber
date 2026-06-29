@@ -8,6 +8,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import FeedbackModal from '@/components/FeedbackModal';
 import { LangProvider, useLang } from '@/components/LangProvider';
 import type { TargetLang } from '@/lib/voices';
+import type { PipelineMode } from '@/lib/pipeline';
 
 type AppState = 'idle' | 'processing' | 'done' | 'error';
 
@@ -18,6 +19,7 @@ function PageContent() {
   const [jobId, setJobId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [targetLang, setTargetLang] = useState<TargetLang>('es');
+  const [pipelineMode, setPipelineMode] = useState<PipelineMode>('dub');
 
   const handleJobStart = (id: string) => { setJobId(id); setState('processing'); setError(null); };
   const handleComplete = useCallback(() => setState('done'), []);
@@ -71,11 +73,12 @@ function PageContent() {
                 onJobStart={handleJobStart}
                 onError={handleError}
                 onTargetLangChange={setTargetLang}
+                onModeChange={setPipelineMode}
               />
             )}
 
             {state === 'processing' && jobId && (
-              <ProgressDisplay jobId={jobId} onComplete={handleComplete} onError={handleError} onCancel={handleReset} />
+              <ProgressDisplay jobId={jobId} onComplete={handleComplete} onError={handleError} onCancel={handleReset} mode={pipelineMode} />
             )}
 
             {state === 'done' && jobId && (

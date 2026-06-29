@@ -9,6 +9,7 @@ import { mergeSentenceSegments } from './merge-sentences';
 import { generateTTS, DEFAULT_VOICE_ID } from './tts';
 import { speedMatchSegments } from './timing';
 import { muxDubbedVideo } from './mux';
+import { getJob } from '@/lib/jobs';
 import type { TargetLang } from '@/lib/voices';
 
 export type ProgressEvent = {
@@ -29,6 +30,7 @@ export async function runPipeline(
   fs.mkdirSync(jobDir, { recursive: true });
 
   const langLabel = targetLang === 'pt-BR' ? 'Portuguese' : 'Spanish';
+  const checkCancelled = () => { if (getJob(jobId)?.cancelled) throw new Error('Cancelled'); };
 
   const emit = (step: string, status: 'running' | 'done' | 'error', message: string) => {
     events.emit('progress', { step, status, message } satisfies ProgressEvent);
@@ -42,36 +44,37 @@ export async function runPipeline(
         ? await downloadYouTube(input.url, jobDir)
         : await saveUploadedFile(input.data, jobDir);
     emit('download', 'done', 'Video ready');
+    checkCancelled();
 
     // Step 2: Extract audio
     emit('extract_audio', 'running', 'Extracting audio...');
     const audioPath = await extractAudio(videoPath, jobDir);
     emit('extract_audio', 'done', 'Audio extracted');
+    checkCancelled();
 
     // Step 3: Transcribe
     emit('transcribe', 'running', 'Transcribing audio with Whisper...');
     const segments = await transcribe(audioPath);
     emit('transcribe', 'done', `Found ${segments.length} segments`);
+    checkCancelled();
 
-    // Step 4: Merge Whisper segments into full sentences before translation
-    // so the translator knows the full time window when calibrating word choice
     const sentenceSegments = mergeSentenceSegments(segments);
 
     emit('translate', 'running', `Translating ${sentenceSegments.length} sentences with timing calibration...`);
     const translated = await translateSegments(sentenceSegments, targetLang);
     emit('translate', 'done', 'Translation complete');
+    checkCancelled();
 
-    // Step 5: TTS — no further merging needed, translation is already sentence-level
     emit('tts', 'running', `Generating ${langLabel} audio for ${translated.length} sentences...`);
     const withAudio = await generateTTS(translated, jobDir, voiceId, targetLang);
     emit('tts', 'done', `${langLabel} audio generated`);
+    checkCancelled();
 
-    // Step 6: Speed-match
     emit('timing', 'running', 'Adjusting audio timing...');
     const timed = await speedMatchSegments(withAudio, jobDir);
     emit('timing', 'done', 'Timing adjusted');
+    checkCancelled();
 
-    // Step 7: Mux
     emit('mux', 'running', 'Assembling final video...');
     const outputPath = await muxDubbedVideo(videoPath, timed, jobDir);
     emit('mux', 'done', 'Video assembled');

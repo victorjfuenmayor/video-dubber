@@ -8,6 +8,7 @@ export interface JobState {
   outputPath: string | null;
   error: string | null;
   createdAt: number;
+  cancelled: boolean;
 }
 
 const jobs = new Map<string, JobState>();
@@ -19,6 +20,7 @@ export function createJob(jobId: string): JobState {
     outputPath: null,
     error: null,
     createdAt: Date.now(),
+    cancelled: false,
   };
   jobs.set(jobId, job);
   scheduleCleanup(jobId);

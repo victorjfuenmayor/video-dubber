@@ -75,7 +75,7 @@ function PageContent() {
             )}
 
             {state === 'processing' && jobId && (
-              <ProgressDisplay jobId={jobId} onComplete={handleComplete} onError={handleError} />
+              <ProgressDisplay jobId={jobId} onComplete={handleComplete} onError={handleError} onCancel={handleReset} />
             )}
 
             {state === 'done' && jobId && (

@@ -15,9 +15,9 @@ const STEPS = [
   { key: 'mux',           label: 'Assemble'       },
 ];
 
-interface Props { jobId: string; onComplete: () => void; onError: (msg: string) => void; }
+interface Props { jobId: string; onComplete: () => void; onError: (msg: string) => void; onCancel: () => void; }
 
-export default function ProgressDisplay({ jobId, onComplete, onError }: Props) {
+export default function ProgressDisplay({ jobId, onComplete, onError, onCancel }: Props) {
   const { tr } = useLang();
   const [steps, setSteps] = useState<Record<string, StepState>>(() =>
     Object.fromEntries(STEPS.map(s => [s.key, { status: 'pending', message: '' }]))
@@ -98,6 +98,16 @@ export default function ProgressDisplay({ jobId, onComplete, onError }: Props) {
           );
         })}
       </div>
+      <button
+        onClick={async () => {
+          await fetch(`/api/cancel/${jobId}`, { method: 'POST' });
+          onCancel();
+        }}
+        style={{ width: '100%', fontSize: '0.8125rem', color: 'var(--text-faint)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem 0', marginTop: '0.25rem' }}
+        onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+        onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-faint)')}>
+        {tr.cancelJob}
+      </button>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );

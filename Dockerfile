@@ -13,6 +13,7 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
+ENV NEXT_PUBLIC_DISABLE_YOUTUBE=true
 RUN NODE_OPTIONS=--max-old-space-size=400 npm run build
 
 ENV NODE_ENV=production

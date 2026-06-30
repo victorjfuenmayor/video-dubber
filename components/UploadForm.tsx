@@ -254,9 +254,9 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, on
 
       {/* Submit */}
       <button type="submit" disabled={disabled || loading}
-        style={{ width: '100%', padding: '0.625rem 1rem', background: loading || disabled ? 'var(--accent)' : 'var(--accent)', color: '#fff', fontSize: '0.875rem', fontWeight: 600, borderRadius: '0.75rem', border: 'none', cursor: disabled || loading ? 'not-allowed' : 'pointer', opacity: disabled || loading ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', transition: 'opacity 0.15s' }}
-        onMouseEnter={e => { if (!loading && !disabled) e.currentTarget.style.background = 'var(--accent-hover)'; }}
-        onMouseLeave={e => { e.currentTarget.style.background = 'var(--accent)'; }}>
+        style={{ width: '100%', padding: '0.7rem 1rem', background: 'var(--accent-gradient)', color: '#fff', fontSize: '0.875rem', fontWeight: 600, borderRadius: '0.75rem', border: 'none', cursor: disabled || loading ? 'not-allowed' : 'pointer', opacity: disabled || loading ? 0.65 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', transition: 'opacity 0.15s, filter 0.15s', boxShadow: '0 2px 12px rgba(26,79,214,0.25)' }}
+        onMouseEnter={e => { if (!loading && !disabled) e.currentTarget.style.filter = 'brightness(1.1)'; }}
+        onMouseLeave={e => { e.currentTarget.style.filter = 'none'; }}>
         {loading && uploadProgress !== null ? (
           <>
             <span style={{ fontSize: '0.8125rem' }}>{tr.uploading} {uploadProgress}%</span>

@@ -38,12 +38,14 @@ export async function GET(
     },
   });
 
-  const isSrt = filePath.endsWith('.srt');
-  const voice = (job.voiceName ?? '').replace(/[^a-zA-Z0-9]/g, '_');
-  const lang  = (job.targetLang ?? '').replace(/[^a-zA-Z0-9]/g, '_');
+  const isSrt  = filePath.endsWith('.srt');
+  const voice  = (job.voiceName   ?? '').replace(/[^a-zA-Z0-9]/g, '_');
+  const lang   = (job.targetLang  ?? '').replace(/[^a-zA-Z0-9]/g, '_');
+  const orig   = (job.originalName ?? '').replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 60);
+  const base   = orig ? `${orig}_` : '';
   const filename = isSrt
-    ? `subtitles${lang ? `_${lang}` : ''}_${jobId.slice(0, 8)}.srt`
-    : `dubbed${voice ? `_${voice}` : ''}${lang ? `_${lang}` : ''}_${jobId.slice(0, 8)}.mp4`;
+    ? `${base}subtitles${lang ? `_${lang}` : ''}.srt`
+    : `${base}dubbed${voice ? `_${voice}` : ''}${lang ? `_${lang}` : ''}.mp4`;
 
   return new Response(webStream, {
     headers: {

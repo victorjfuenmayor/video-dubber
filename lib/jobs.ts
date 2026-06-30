@@ -11,6 +11,7 @@ export interface JobState {
   cancelled: boolean;
   voiceName?: string;
   targetLang?: string;
+  originalName?: string;
 }
 
 const jobs = new Map<string, JobState>();

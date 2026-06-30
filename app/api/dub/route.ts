@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
     voiceId = form.get('voiceId') as string | undefined ?? undefined;
     targetLang = parseTargetLang(form.get('targetLang'));
     mode = parseMode(form.get('mode'));
+    job.originalName = file.name.replace(/\.[^.]+$/, ''); // strip extension
     input = { type: 'upload', data };
   } else {
     const body = await req.json();

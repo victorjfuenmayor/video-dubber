@@ -120,6 +120,12 @@ async function generateSegmentAudio(
     throw new Error(`ElevenLabs TTS failed (${res.status}): ${errText.slice(0, 300)}`);
   }
 
+  const contentType = res.headers.get('content-type') ?? '';
+  if (!contentType.includes('audio') && !contentType.includes('mpeg')) {
+    const errText = await res.text();
+    throw new Error(`ElevenLabs returned non-audio response (${contentType}): ${errText.slice(0, 300)}`);
+  }
+
   // Save MP3 then let ffmpeg decode to WAV — avoids any PCM sample-rate guesswork
   const mp3Path = outputPath.replace(/\.wav$/, '.mp3');
   fs.writeFileSync(mp3Path, Buffer.from(await res.arrayBuffer()));

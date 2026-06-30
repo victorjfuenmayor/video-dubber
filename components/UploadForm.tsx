@@ -26,6 +26,8 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, on
   const [voiceId, setVoiceId] = useState<string>(DEFAULT_VOICE_ID);
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [playingVoice, setPlayingVoice] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [fileName, setFileName] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
   const xhrRef = useRef<XMLHttpRequest | null>(null);
@@ -35,6 +37,28 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, on
     const newVoices = getVoicesByLang(lang);
     setVoiceId(newVoices[0]?.id ?? DEFAULT_VOICE_ID);
     onTargetLangChange?.(lang);
+  }
+
+  async function playPreview(voiceId: string, e: React.MouseEvent) {
+    e.stopPropagation();
+    if (playingVoice === voiceId) {
+      audioRef.current?.pause();
+      setPlayingVoice(null);
+      return;
+    }
+    audioRef.current?.pause();
+    setPlayingVoice(voiceId);
+    try {
+      const res = await fetch(`/api/voice-preview/${voiceId}`);
+      const { previewUrl } = await res.json();
+      const audio = new Audio(previewUrl);
+      audioRef.current = audio;
+      audio.onended = () => setPlayingVoice(null);
+      audio.onerror = () => setPlayingVoice(null);
+      await audio.play();
+    } catch {
+      setPlayingVoice(null);
+    }
   }
 
   function handlePipelineModeChange(m: PipelineMode) {
@@ -207,10 +231,22 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, on
             const sel = voiceId === v.id;
             return (
               <button key={v.id} type="button" onClick={() => setVoiceId(v.id)}
-                style={{ padding: '0.625rem 0.5rem', borderRadius: '0.75rem', fontSize: '0.8125rem', textAlign: 'center', cursor: 'pointer', border: `1.5px solid ${sel ? 'var(--accent)' : 'var(--border)'}`, background: sel ? 'var(--accent)' : 'var(--surface-2)', color: sel ? '#fff' : 'var(--text)', transition: 'all 0.15s' }}>
+                style={{ padding: '0.5rem 0.375rem', borderRadius: '0.75rem', fontSize: '0.8125rem', textAlign: 'center', cursor: 'pointer', border: `1.5px solid ${sel ? 'var(--accent)' : 'var(--border)'}`, background: sel ? 'var(--accent)' : 'var(--surface-2)', color: sel ? '#fff' : 'var(--text)', transition: 'all 0.15s', position: 'relative' }}>
                 <span style={{ display: 'block', fontWeight: 600, lineHeight: 1.2 }}>{v.name}</span>
                 <span style={{ display: 'block', fontSize: '0.6875rem', marginTop: '0.2rem', color: sel ? 'rgba(255,255,255,0.7)' : 'var(--text-faint)' }}>
                   {v.gender === 'female' ? tr.female : tr.male}
+                </span>
+                <span
+                  role="button"
+                  onClick={(e) => playPreview(v.id, e)}
+                  style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginTop: '0.3rem', width: '1.25rem', height: '1.25rem', borderRadius: '50%', background: sel ? 'rgba(255,255,255,0.2)' : 'var(--border)', cursor: 'pointer' }}
+                  title="Preview voice"
+                >
+                  {playingVoice === v.id ? (
+                    <svg width="8" height="8" viewBox="0 0 10 10" fill="currentColor"><rect x="1" y="1" width="3" height="8"/><rect x="6" y="1" width="3" height="8"/></svg>
+                  ) : (
+                    <svg width="7" height="7" viewBox="0 0 10 10" fill="currentColor"><polygon points="2,1 9,5 2,9"/></svg>
+                  )}
                 </span>
               </button>
             );

@@ -5,6 +5,7 @@ import { createJob } from '@/lib/jobs';
 import { runPipeline } from '@/lib/pipeline';
 import type { PipelineMode } from '@/lib/pipeline';
 import type { TargetLang } from '@/lib/voices';
+import { VOICES } from '@/lib/voices';
 
 export const maxDuration = 600;
 
@@ -55,6 +56,9 @@ export async function POST(req: NextRequest) {
   }
 
   console.log(`[dub] jobId=${jobId} mode=${mode} targetLang=${targetLang}`);
+  const voiceName = VOICES.find(v => v.id === voiceId)?.name ?? voiceId ?? 'unknown';
+  job.voiceName = voiceName;
+  job.targetLang = targetLang;
 
   // Fire pipeline async — do not await
   runPipeline(input, jobId, job.events, TMP_DIR, voiceId, targetLang, mode)

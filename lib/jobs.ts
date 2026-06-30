@@ -9,6 +9,8 @@ export interface JobState {
   error: string | null;
   createdAt: number;
   cancelled: boolean;
+  voiceName?: string;
+  targetLang?: string;
 }
 
 const jobs = new Map<string, JobState>();

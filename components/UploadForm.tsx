@@ -50,8 +50,8 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, on
     audioRef.current?.pause();
 
     setPlayingVoice(voiceId);
-    // Stream audio directly from our proxy endpoint — works for any voice type
-    const previewUrl = `/api/voice-preview/${voiceId}`;
+    const voiceLang = voices.find(v => v.id === voiceId)?.lang ?? 'es';
+    const previewUrl = `/api/voice-preview/${voiceId}?lang=${voiceLang}`;
     const audio = new Audio(previewUrl);
     audioRef.current = audio;
     audio.onended = () => setPlayingVoice(null);

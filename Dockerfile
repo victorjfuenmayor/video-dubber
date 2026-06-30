@@ -1,7 +1,8 @@
 FROM node:20-slim
 
 # Install ffmpeg, yt-dlp, and Tailscale
-RUN apt-get update && apt-get install -y ffmpeg python3 curl \
+RUN apt-get update && apt-get install -y ffmpeg python3 python3-pip curl \
+  && pip3 install ffsubsync --break-system-packages \
   && curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp \
   && chmod +x /usr/local/bin/yt-dlp \
   && curl -fsSL https://tailscale.com/install.sh | sh \

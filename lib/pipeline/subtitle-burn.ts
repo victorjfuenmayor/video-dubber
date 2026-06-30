@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { spawn } from 'child_process';
 import type { Segment } from './types';
 
 const MAX_CHARS_PER_LINE = 42;
@@ -36,6 +37,21 @@ function toSrtTime(seconds: number): string {
   const s  = Math.floor(seconds % 60);
   const ms = Math.round((seconds % 1) * 1000);
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')},${String(ms).padStart(3, '0')}`;
+}
+
+export function syncSrtToVideo(videoPath: string, srtPath: string): Promise<string> {
+  const syncedPath = srtPath.replace('.srt', '_synced.srt');
+  return new Promise((resolve, reject) => {
+    const proc = spawn('ffsubsync', [videoPath, '-i', srtPath, '-o', syncedPath],
+      { stdio: ['ignore', 'pipe', 'pipe'] });
+    let stderr = '';
+    proc.stderr.on('data', (d: Buffer) => { stderr += d.toString(); });
+    proc.on('close', (code) => {
+      if (code === 0 && fs.existsSync(syncedPath)) resolve(syncedPath);
+      else resolve(srtPath); // fall back to unsynced if ffsubsync fails
+    });
+    proc.on('error', () => resolve(srtPath)); // ffsubsync not installed locally — skip
+  });
 }
 
 export async function generateSrtFile(segments: Segment[], jobDir: string): Promise<string> {

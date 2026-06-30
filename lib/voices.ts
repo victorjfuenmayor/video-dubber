@@ -11,6 +11,10 @@ export const VOICES = [
   { id: 'oJebhZNaPllxk6W0LSBA', name: 'Carla',        gender: 'female', lang: 'pt-BR' },
   { id: 'rthJ5Dw4ng8Orz8mYafh', name: 'Luana',        gender: 'female', lang: 'pt-BR' },
   { id: 'S4M4JhZIzYGUlDsYIOow', name: 'Elena',        gender: 'female', lang: 'pt-BR' },
+  { id: 'GnDrTQvdzZ7wqAKfLzVQ', name: 'Guilherme',   gender: 'male',   lang: 'pt-BR' },
+  { id: '1eBtZhneFpMPiYsjVTGl', name: 'Eduardo',     gender: 'male',   lang: 'pt-BR' },
+  { id: 'xJlJsFPYWbVULW1DtDlv', name: 'Mercos',      gender: 'male',   lang: 'pt-BR' },
+  { id: 'AGNkIY6dMkIkc3g53Rdb', name: 'Rafael',      gender: 'male',   lang: 'pt-BR' },
 ] as const;
 
 export const DEFAULT_VOICE_ID = VOICES[0].id;

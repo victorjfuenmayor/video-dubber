@@ -24,7 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className="min-h-screen antialiased bg-slate-50 dark:bg-gray-950 transition-colors duration-200">
+      <body className="min-h-screen antialiased">
         {children}
       </body>
     </html>

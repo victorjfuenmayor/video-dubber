@@ -4,9 +4,10 @@ import { useLang } from './LangProvider';
 
 interface Props {
   jobId: string;
+  mode?: 'dub' | 'subtitle';
 }
 
-export default function DownloadButton({ jobId }: Props) {
+export default function DownloadButton({ jobId, mode = 'dub' }: Props) {
   const { tr } = useLang();
   return (
     <a href={`/api/download/${jobId}`} download
@@ -18,7 +19,7 @@ export default function DownloadButton({ jobId }: Props) {
         <polyline points="7 10 12 15 17 10"/>
         <line x1="12" y1="15" x2="12" y2="3"/>
       </svg>
-      {tr.downloadVideo}
+      {mode === 'subtitle' ? tr.downloadSubtitles : tr.downloadVideo}
     </a>
   );
 }

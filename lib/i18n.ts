@@ -52,6 +52,7 @@ export const t = {
     },
     // DownloadButton
     downloadVideo:      'Download dubbed video',
+    downloadSubtitles:  'Download subtitles (.srt)',
     // FeedbackModal
     shareFeeback:       'Share feedback',
     helpImprove:        'Help us improve Video Dubber',
@@ -121,6 +122,7 @@ export const t = {
     },
     // DownloadButton
     downloadVideo:      'Descargar video doblado',
+    downloadSubtitles:  'Descargar subtítulos (.srt)',
     // FeedbackModal
     shareFeeback:       'Compartir comentario',
     helpImprove:        'Ayúdanos a mejorar Video Dubber',
@@ -190,6 +192,7 @@ export const t = {
     },
     // DownloadButton
     downloadVideo:      'Baixar vídeo dublado',
+    downloadSubtitles:  'Baixar legendas (.srt)',
     // FeedbackModal
     shareFeeback:       'Compartilhar feedback',
     helpImprove:        'Ajude-nos a melhorar o Video Dubber',

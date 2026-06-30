@@ -38,11 +38,12 @@ export async function GET(
     },
   });
 
+  const isSrt = filePath.endsWith('.srt');
   return new Response(webStream, {
     headers: {
-      'Content-Type': 'video/mp4',
+      'Content-Type': isSrt ? 'application/x-subrip' : 'video/mp4',
       'Content-Length': String(stat.size),
-      'Content-Disposition': `attachment; filename="dubbed_${jobId.slice(0, 8)}.mp4"`,
+      'Content-Disposition': `attachment; filename="${isSrt ? `subtitles_${jobId.slice(0, 8)}.srt` : `dubbed_${jobId.slice(0, 8)}.mp4`}"`,
     },
   });
 }

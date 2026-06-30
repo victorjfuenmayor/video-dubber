@@ -9,7 +9,7 @@ import { mergeSentenceSegments } from './merge-sentences';
 import { generateTTS, DEFAULT_VOICE_ID } from './tts';
 import { speedMatchSegments } from './timing';
 import { muxDubbedVideo } from './mux';
-import { generateAssFile, burnSubtitles } from './subtitle-burn';
+import { generateSrtFile } from './subtitle-burn';
 import { getJob } from '@/lib/jobs';
 import type { TargetLang } from '@/lib/voices';
 
@@ -72,10 +72,9 @@ export async function runPipeline(
     let outputPath: string;
 
     if (mode === 'subtitle') {
-      emit('subtitle_burn', 'running', 'Burning subtitles into video...');
-      const assPath = await generateAssFile(translated, jobDir);
-      outputPath = await burnSubtitles(videoPath, assPath, jobDir);
-      emit('subtitle_burn', 'done', 'Subtitles burned');
+      emit('subtitle_burn', 'running', 'Generating subtitle file...');
+      outputPath = await generateSrtFile(translated, jobDir);
+      emit('subtitle_burn', 'done', 'Subtitles ready');
     } else {
       emit('tts', 'running', `Generating ${langLabel} audio for ${translated.length} sentences...`);
       const withAudio = await generateTTS(translated, jobDir, voiceId, targetLang);

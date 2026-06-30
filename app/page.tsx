@@ -94,7 +94,7 @@ function PageContent() {
                     <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{tr.videoReady}</p>
                   </div>
                 </div>
-                <DownloadButton jobId={jobId} />
+                <DownloadButton jobId={jobId} mode={pipelineMode} />
                 <button onClick={handleReset} style={{ width: '100%', fontSize: '0.8125rem', color: 'var(--text-faint)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem 0' }}
                   onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-muted)')}
                   onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-faint)')}>

@@ -25,6 +25,7 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, on
   const voices = getVoicesByLang(targetLang);
   const [voiceId, setVoiceId] = useState<string>(DEFAULT_VOICE_ID);
   const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [fileName, setFileName] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -43,8 +44,9 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, on
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
+    setUploadProgress(null);
     try {
-      let res: Response;
+      let jobId: string;
       if (inputMode === 'file') {
         const file = fileRef.current?.files?.[0];
         if (!file) throw new Error(tr.noFile);
@@ -53,25 +55,44 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, on
         form.append('voiceId', voiceId);
         form.append('targetLang', targetLang);
         form.append('mode', pipelineMode);
-        res = await fetch('/api/dub', { method: 'POST', body: form });
+        jobId = await new Promise<string>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) setUploadProgress(Math.round((e.loaded / e.total) * 100));
+          };
+          xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              const data = JSON.parse(xhr.responseText);
+              resolve(data.jobId);
+            } else {
+              const data = JSON.parse(xhr.responseText).catch?.(() => ({})) ?? {};
+              reject(new Error(data.error ?? 'Request failed'));
+            }
+          };
+          xhr.onerror = () => reject(new Error('Upload failed'));
+          xhr.open('POST', '/api/dub');
+          xhr.send(form);
+        });
       } else {
         if (!url.trim()) throw new Error(tr.noUrl);
-        res = await fetch('/api/dub', {
+        const res = await fetch('/api/dub', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ url: url.trim(), voiceId, targetLang, mode: pipelineMode }),
         });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ error: 'Request failed' }));
+          throw new Error(err.error ?? 'Unknown error');
+        }
+        const data = await res.json();
+        jobId = data.jobId;
       }
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: 'Request failed' }));
-        throw new Error(err.error ?? 'Unknown error');
-      }
-      const { jobId } = await res.json();
       onJobStart(jobId);
     } catch (err) {
       onError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
+      setUploadProgress(null);
     }
   }
 
@@ -199,7 +220,11 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, on
         style={{ width: '100%', padding: '0.625rem 1rem', background: loading || disabled ? 'var(--accent)' : 'var(--accent)', color: '#fff', fontSize: '0.875rem', fontWeight: 600, borderRadius: '0.75rem', border: 'none', cursor: disabled || loading ? 'not-allowed' : 'pointer', opacity: disabled || loading ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', transition: 'opacity 0.15s' }}
         onMouseEnter={e => { if (!loading && !disabled) e.currentTarget.style.background = 'var(--accent-hover)'; }}
         onMouseLeave={e => { e.currentTarget.style.background = 'var(--accent)'; }}>
-        {loading ? (
+        {loading && uploadProgress !== null ? (
+          <>
+            <span style={{ fontSize: '0.8125rem' }}>{tr.uploading} {uploadProgress}%</span>
+          </>
+        ) : loading ? (
           <>
             <span style={{ width: '1rem', height: '1rem', border: `2px solid var(--spinner-border)`, borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'block' }} />
             {tr.starting}
@@ -213,6 +238,14 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, on
           </>
         )}
       </button>
+
+      {uploadProgress !== null && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+          <div style={{ height: '0.25rem', background: 'var(--surface-2)', borderRadius: '9999px', overflow: 'hidden' }}>
+            <div style={{ height: '100%', background: 'var(--accent)', borderRadius: '9999px', width: `${uploadProgress}%`, transition: 'width 0.2s ease-out' }} />
+          </div>
+        </div>
+      )}
 
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </form>

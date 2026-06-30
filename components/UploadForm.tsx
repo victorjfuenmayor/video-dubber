@@ -28,6 +28,7 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, on
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [playingVoice, setPlayingVoice] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const previewCache = useRef<Record<string, string>>({});
   const [fileName, setFileName] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
   const xhrRef = useRef<XMLHttpRequest | null>(null);
@@ -47,18 +48,27 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, on
       return;
     }
     audioRef.current?.pause();
-    setPlayingVoice(voiceId);
-    try {
-      const res = await fetch(`/api/voice-preview/${voiceId}`);
-      const { previewUrl } = await res.json();
-      const audio = new Audio(previewUrl);
-      audioRef.current = audio;
-      audio.onended = () => setPlayingVoice(null);
-      audio.onerror = () => setPlayingVoice(null);
-      await audio.play();
-    } catch {
-      setPlayingVoice(null);
+
+    // Get cached URL or fetch it
+    let previewUrl = previewCache.current[voiceId];
+    if (!previewUrl) {
+      try {
+        const res = await fetch(`/api/voice-preview/${voiceId}`);
+        const data = await res.json();
+        if (!data.previewUrl) return;
+        previewUrl = data.previewUrl;
+        previewCache.current[voiceId] = previewUrl;
+      } catch {
+        return;
+      }
     }
+
+    setPlayingVoice(voiceId);
+    const audio = new Audio(previewUrl);
+    audioRef.current = audio;
+    audio.onended = () => setPlayingVoice(null);
+    audio.onerror = () => setPlayingVoice(null);
+    audio.play().catch(() => setPlayingVoice(null));
   }
 
   function handlePipelineModeChange(m: PipelineMode) {

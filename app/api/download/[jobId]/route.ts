@@ -41,10 +41,9 @@ export async function GET(
   const isSrt = filePath.endsWith('.srt');
   const voice = (job.voiceName ?? '').replace(/[^a-zA-Z0-9]/g, '_');
   const lang  = (job.targetLang ?? '').replace(/[^a-zA-Z0-9]/g, '_');
-  const tag   = voice && lang ? `_${voice}_${lang}` : '';
   const filename = isSrt
-    ? `subtitles${tag}_${jobId.slice(0, 8)}.srt`
-    : `dubbed${tag}_${jobId.slice(0, 8)}.mp4`;
+    ? `subtitles${lang ? `_${lang}` : ''}_${jobId.slice(0, 8)}.srt`
+    : `dubbed${voice ? `_${voice}` : ''}${lang ? `_${lang}` : ''}_${jobId.slice(0, 8)}.mp4`;
 
   return new Response(webStream, {
     headers: {

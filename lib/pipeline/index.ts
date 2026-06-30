@@ -62,10 +62,12 @@ export async function runPipeline(
     emit('transcribe', 'done', `Found ${segments.length} segments`);
     checkCancelled();
 
-    const sentenceSegments = mergeSentenceSegments(segments);
+    // For subtitles: keep raw Whisper segments (short, in sync with speech)
+    // For dubbing: merge into full sentences so TTS has the full time window
+    const segmentsToTranslate = mode === 'subtitle' ? segments : mergeSentenceSegments(segments);
 
-    emit('translate', 'running', `Translating ${sentenceSegments.length} sentences with timing calibration...`);
-    const translated = await translateSegments(sentenceSegments, targetLang);
+    emit('translate', 'running', `Translating ${segmentsToTranslate.length} segments...`);
+    const translated = await translateSegments(segmentsToTranslate, targetLang);
     emit('translate', 'done', 'Translation complete');
     checkCancelled();
 

@@ -1,7 +1,7 @@
 export const VOICES = [
   { id: 'cIBxLwfshLYhRB9lCXEg', name: 'Carolina',    gender: 'female', lang: 'es'   },
   { id: 'jUxkp8eMgszgJX3XU2pV', name: 'Annie',        gender: 'female', lang: 'es'   },
-  { id: '22VndfJPBU7AZORAZZTT', name: 'Salvatore',    gender: 'male',   lang: 'es'   },
+  { id: '22VndfJPBU7AZORAZZTT', name: 'Valeria',      gender: 'female', lang: 'es'   },
   { id: 'YExhVa4bZONzeingloMX', name: 'Juan Carlos',  gender: 'male',   lang: 'es'   },
   { id: 'lMifbV29t7Wz2VrjgNs6', name: 'Lisandro',     gender: 'male',   lang: 'es'   },
   { id: 'HbJt0yomFFBFMBQ7I69w', name: 'Agustin',      gender: 'male',   lang: 'es'   },

@@ -49,21 +49,9 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, on
     }
     audioRef.current?.pause();
 
-    // Get cached URL or fetch it
-    let previewUrl = previewCache.current[voiceId];
-    if (!previewUrl) {
-      try {
-        const res = await fetch(`/api/voice-preview/${voiceId}`);
-        const data = await res.json();
-        if (!data.previewUrl) return;
-        previewUrl = data.previewUrl;
-        previewCache.current[voiceId] = previewUrl;
-      } catch {
-        return;
-      }
-    }
-
     setPlayingVoice(voiceId);
+    // Stream audio directly from our proxy endpoint — works for any voice type
+    const previewUrl = `/api/voice-preview/${voiceId}`;
     const audio = new Audio(previewUrl);
     audioRef.current = audio;
     audio.onended = () => setPlayingVoice(null);

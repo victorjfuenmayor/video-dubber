@@ -154,14 +154,14 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, on
           </svg>
           {tr.uploadFile}
         </button>
-        <button type="button" onClick={() => !YOUTUBE_DISABLED && setInputMode('url')}
-          style={{ ...tabStyle(inputMode === 'url'), opacity: YOUTUBE_DISABLED ? 0.4 : 1, cursor: YOUTUBE_DISABLED ? 'not-allowed' : 'pointer' }}
-          title={YOUTUBE_DISABLED ? tr.youtubeDisabled : undefined}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/>
-          </svg>
-          {tr.youtubeUrl}
-        </button>
+        {!YOUTUBE_DISABLED && (
+          <button type="button" onClick={() => setInputMode('url')} style={tabStyle(inputMode === 'url')}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/>
+            </svg>
+            {tr.youtubeUrl}
+          </button>
+        )}
       </div>
 
       {/* Dub language selector */}

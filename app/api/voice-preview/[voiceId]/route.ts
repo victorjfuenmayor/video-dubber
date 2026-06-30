@@ -29,12 +29,17 @@ export async function GET(
     }
   );
 
-  if (!res.ok) return new Response('Preview unavailable', { status: 502 });
+  if (!res.ok) {
+    const err = await res.text();
+    console.error(`[voice-preview] ElevenLabs error ${res.status}:`, err.slice(0, 200));
+    return new Response('Preview unavailable', { status: 502 });
+  }
 
-  const contentType = res.headers.get('content-type') ?? 'audio/mpeg';
-  return new Response(res.body, {
+  const buffer = await res.arrayBuffer();
+  return new Response(buffer, {
     headers: {
-      'Content-Type': contentType,
+      'Content-Type': 'audio/mpeg',
+      'Content-Length': String(buffer.byteLength),
       'Cache-Control': 'public, max-age=3600',
     },
   });

@@ -28,6 +28,7 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, on
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [fileName, setFileName] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
+  const xhrRef = useRef<XMLHttpRequest | null>(null);
 
   function handleTargetLangChange(lang: TargetLang) {
     setTargetLang(lang);
@@ -57,6 +58,7 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, on
         form.append('mode', pipelineMode);
         jobId = await new Promise<string>((resolve, reject) => {
           const xhr = new XMLHttpRequest();
+          xhrRef.current = xhr;
           xhr.upload.onprogress = (e) => {
             if (e.lengthComputable) setUploadProgress(Math.round((e.loaded / e.total) * 100));
           };
@@ -93,6 +95,7 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, on
     } finally {
       setLoading(false);
       setUploadProgress(null);
+      xhrRef.current = null;
     }
   }
 
@@ -238,6 +241,16 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, on
           </>
         )}
       </button>
+
+      {loading && (
+        <button type="button"
+          onClick={() => { xhrRef.current?.abort(); setLoading(false); setUploadProgress(null); }}
+          style={{ width: '100%', fontSize: '0.8125rem', color: 'var(--text-faint)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem 0' }}
+          onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+          onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-faint)')}>
+          {tr.cancelJob}
+        </button>
+      )}
 
       {uploadProgress !== null && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>

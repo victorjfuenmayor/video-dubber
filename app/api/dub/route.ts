@@ -54,6 +54,8 @@ export async function POST(req: NextRequest) {
     input = { type: 'youtube', url: body.url };
   }
 
+  console.log(`[dub] jobId=${jobId} mode=${mode} targetLang=${targetLang}`);
+
   // Fire pipeline async — do not await
   runPipeline(input, jobId, job.events, TMP_DIR, voiceId, targetLang, mode)
     .then((outputPath: string) => {

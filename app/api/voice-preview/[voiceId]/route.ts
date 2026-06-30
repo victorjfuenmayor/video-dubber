@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const SAMPLE_BY_LANG: Record<string, string> = {
-  'es':    'Hola, esta es una muestra de mi voz. Hello, this is a sample of my voice.',
-  'pt-BR': 'Olá, esta é uma amostra da minha voz. Hello, this is a sample of my voice.',
+  'es':    'Nuestra plataforma protege todo tipo de identidad, desde agentes de IA hasta tus clientes, empleados y socios. Our platform secures all types of identity, from AI agents to your customers, employees, and partners.',
+  'pt-BR': 'Nossa plataforma protege todos os tipos de identidade, de agentes de IA aos seus clientes, funcionários e parceiros. Our platform secures all types of identity, from AI agents to your customers, employees, and partners.',
 };
 
 export async function GET(

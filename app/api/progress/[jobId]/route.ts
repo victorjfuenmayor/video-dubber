@@ -45,7 +45,13 @@ export async function GET(
         controller.close();
       };
 
+      // Send keepalive comment every 20s to prevent proxy/Render from closing idle SSE connections
+      const keepalive = setInterval(() => {
+        controller.enqueue(encoder.encode(': keepalive\n\n'));
+      }, 20000);
+
       const cleanup = () => {
+        clearInterval(keepalive);
         job.events.off('progress', onProgress);
         job.events.off('complete', onComplete);
         job.events.off('error', onError);

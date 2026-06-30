@@ -202,7 +202,7 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, on
             {fileName || tr.clickToSelect}
           </span>
           <span style={{ fontSize: '0.6875rem', color: 'var(--text-faint)' }}>{tr.fileTypes}</span>
-          {pipelineMode === 'dub' && <span style={{ fontSize: '0.6875rem', color: 'var(--accent)', fontWeight: 500 }}>{tr.maxDuration}</span>}
+          <span style={{ fontSize: '0.6875rem', color: 'var(--accent)', fontWeight: 500 }}>{tr.maxDuration}</span>
           <input ref={fileRef} type="file" accept="video/*" style={{ display: 'none' }} required
             onChange={e => setFileName(e.target.files?.[0]?.name ?? '')} />
         </label>

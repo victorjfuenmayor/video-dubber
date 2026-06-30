@@ -8,8 +8,6 @@ export const VOICES = [
   { id: 'zz96trXRmkXXgTVEtLgy', name: 'Victor',       gender: 'male',   lang: 'es'   },
   { id: 'cyD08lEy76q03ER1jZ7y', name: 'Scheila',      gender: 'female', lang: 'pt-BR' },
   { id: 'NQ10OlqJ7vYH6XwegHSW', name: 'Lucke',        gender: 'male',   lang: 'pt-BR' },
-  { id: 'aU2vcrnwi348Gnc2Y1si', name: 'Jose',         gender: 'male',   lang: 'pt-BR' },
-  { id: 'wOCZZnsBoGOFlQRdxeRb', name: 'Peter',        gender: 'male',   lang: 'pt-BR' },
   { id: 'oJebhZNaPllxk6W0LSBA', name: 'Carla',        gender: 'female', lang: 'pt-BR' },
   { id: 'rthJ5Dw4ng8Orz8mYafh', name: 'Luana',        gender: 'female', lang: 'pt-BR' },
   { id: 'S4M4JhZIzYGUlDsYIOow', name: 'Elena',        gender: 'female', lang: 'pt-BR' },

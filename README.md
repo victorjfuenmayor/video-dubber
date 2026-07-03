@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Video Dubber
 
-## Getting Started
+AI-powered video dubbing and subtitling app. Upload a video in English and get it dubbed or subtitled in **Latin American Spanish** or **Brazilian Portuguese** — with natural-sounding voices powered by ElevenLabs.
 
-First, run the development server:
+## Features
+
+- **Audio Dubbing** — translates and re-voices the video with AI voices
+- **Subtitles** — generates a synced `.srt` subtitle file
+- **9 Spanish voices** + **9 Portuguese BR voices** with audio preview
+- **Auto subtitle sync** via ffsubsync
+- Light/dark mode · EN/ES/PT UI · Cancel mid-process
+
+## Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 16 (App Router) |
+| Transcription | Groq Whisper |
+| Translation | Anthropic Claude |
+| Text-to-Speech | ElevenLabs |
+| Audio/Video | FFmpeg |
+| Subtitle sync | ffsubsync |
+| Emails | Resend |
+
+## Local Setup
+
+### Prerequisites
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Node.js 20+
+brew install node
+
+# FFmpeg with libass (for subtitle burning)
+brew install homebrew-ffmpeg/ffmpeg/ffmpeg
+
+# yt-dlp (optional, for YouTube URLs)
+curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp \
+  -o /usr/local/bin/yt-dlp && chmod +x /usr/local/bin/yt-dlp
+
+# ffsubsync (subtitle auto-sync)
+brew install pipx && pipx install ffsubsync
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Environment
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+cp .env.example .env.local
+# Fill in your API keys in .env.local
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Run
 
-## Learn More
+```bash
+npm install
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Open http://localhost:3000
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Environment Variables
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `GROQ_API_KEY` | ✅ | Whisper transcription |
+| `ANTHROPIC_API_KEY` | ✅ | Claude translation |
+| `ELEVENLABS_API_KEY` | ✅ | Text-to-speech voices |
+| `RESEND_API_KEY` | optional | Feedback emails |
+| `FEEDBACK_TO_EMAIL` | optional | Where feedback emails go |
+| `FFMPEG_PATH` | optional | Override ffmpeg binary path |
+| `YT_DLP_PATH` | optional | Override yt-dlp binary path |
 
-## Deploy on Vercel
+## Limitations
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Max ~10 minutes** per video (Groq Whisper 25MB audio limit)
+- YouTube URL support requires local setup (cloud IPs are blocked by YouTube)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Deploy
+
+Includes a `Dockerfile` for deployment on Render or any Docker host. See `.env.example` for all required environment variables.

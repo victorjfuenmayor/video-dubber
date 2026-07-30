@@ -149,9 +149,15 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, on
     boxShadow: 'none',
   });
 
-  const submitLabel = pipelineMode === 'subtitle'
-    ? (targetLang === 'pt-BR' ? tr.subtitleToPortuguese : tr.subtitleToSpanish)
-    : (targetLang === 'pt-BR' ? tr.dubToPortuguese : tr.dubToSpanish);
+  const dubLabels: Record<TargetLang, string> = { es: tr.dubToSpanish, 'pt-BR': tr.dubToPortuguese, ja: tr.dubToJapanese };
+  const subtitleLabels: Record<TargetLang, string> = { es: tr.subtitleToSpanish, 'pt-BR': tr.subtitleToPortuguese, ja: tr.subtitleToJapanese };
+  const submitLabel = pipelineMode === 'subtitle' ? subtitleLabels[targetLang] : dubLabels[targetLang];
+
+  const selectStyle: React.CSSProperties = {
+    width: '100%', padding: '0.55rem 0.75rem', fontSize: '0.8125rem', fontWeight: 500,
+    background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: '0.6rem',
+    color: 'var(--text)', outline: 'none', cursor: 'pointer', appearance: 'none',
+  };
 
   return (
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.125rem' }}>
@@ -177,14 +183,15 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, on
       {/* Dub language selector */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
         <label style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{tr.dubLangLabel}</label>
-        <div style={{ display: 'flex', padding: '0.2rem', background: 'var(--surface-2)', borderRadius: '0.6rem', gap: '0.2rem' }}>
-          <button type="button" onClick={() => handleTargetLangChange('es')} style={dubLangTabStyle(targetLang === 'es')}>
-            {tr.dubLangEs}
-          </button>
-          <button type="button" onClick={() => handleTargetLangChange('pt-BR')} style={dubLangTabStyle(targetLang === 'pt-BR')}>
-            {tr.dubLangPt}
-          </button>
-        </div>
+        <select
+          value={targetLang}
+          onChange={e => handleTargetLangChange(e.target.value as TargetLang)}
+          style={selectStyle}
+        >
+          <option value="es">{tr.dubLangEs}</option>
+          <option value="pt-BR">{tr.dubLangPt}</option>
+          <option value="ja">{tr.dubLangJa}</option>
+        </select>
       </div>
 
       {/* Pipeline mode toggle */}

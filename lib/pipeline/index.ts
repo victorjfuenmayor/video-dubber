@@ -34,7 +34,7 @@ export async function runPipeline(
   const jobDir = path.join(tmpBase, jobId);
   fs.mkdirSync(jobDir, { recursive: true });
 
-  const langLabel = targetLang === 'pt-BR' ? 'Portuguese' : 'Spanish';
+  const langLabel = { es: 'Spanish', 'pt-BR': 'Portuguese', ja: 'Japanese' }[targetLang];
   const checkCancelled = () => { if (getJob(jobId)?.cancelled) throw new Error('Cancelled'); };
 
   const emit = (step: string, status: 'running' | 'done' | 'error', message: string) => {

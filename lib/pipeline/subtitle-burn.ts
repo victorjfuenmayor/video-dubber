@@ -3,10 +3,22 @@ import path from 'path';
 import type { Segment } from './types';
 
 const MAX_CHARS_PER_LINE = 42;
+// Japanese has no spaces between words and much higher glyph density/width
+// per character than Latin scripts, so broadcast-subtitle convention uses a
+// much shorter line length.
+const MAX_CHARS_PER_LINE_JA = 20;
 const MAX_LINES = 2;
 
-// Split text into chunks of max MAX_LINES lines each, preserving all words
+// Hiragana, Katakana, and CJK ideograph (kanji) Unicode ranges.
+const CJK_PATTERN = /[぀-ヿ一-鿿]/;
+
+// Split text into chunks of max MAX_LINES lines each, preserving all words.
+// Japanese doesn't delimit words with spaces, so word-based wrapping would
+// treat an entire sentence as one unbreakable unit — wrap by character
+// count instead when the text is CJK.
 function splitIntoChunks(text: string): string[] {
+  if (CJK_PATTERN.test(text)) return splitIntoChunksByChar(text);
+
   const words = text.trim().split(/\s+/);
   const chunks: string[] = [];
   let currentLines: string[] = [];
@@ -26,6 +38,22 @@ function splitIntoChunks(text: string): string[] {
     }
   }
   if (currentLine) currentLines.push(currentLine);
+  if (currentLines.length > 0) chunks.push(currentLines.join('\n'));
+  return chunks.length > 0 ? chunks : [text];
+}
+
+function splitIntoChunksByChar(text: string): string[] {
+  const chars = Array.from(text.trim());
+  const chunks: string[] = [];
+  let currentLines: string[] = [];
+
+  for (let i = 0; i < chars.length; i += MAX_CHARS_PER_LINE_JA) {
+    currentLines.push(chars.slice(i, i + MAX_CHARS_PER_LINE_JA).join(''));
+    if (currentLines.length >= MAX_LINES) {
+      chunks.push(currentLines.join('\n'));
+      currentLines = [];
+    }
+  }
   if (currentLines.length > 0) chunks.push(currentLines.join('\n'));
   return chunks.length > 0 ? chunks : [text];
 }

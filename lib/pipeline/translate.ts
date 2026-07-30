@@ -7,11 +7,22 @@ const client = new Anthropic({
   baseURL: process.env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com',
 });
 
-// Spanish natural speaking pace: ~2.2 words/second, ~12 chars/second
-const CHARS_PER_SECOND = 12;
+// Natural speaking pace per target language, in characters per second.
+// Spanish/Portuguese are Latin-script, space-delimited languages with similar
+// information density per character. Japanese has no spaces and much higher
+// meaning-density per character (kanji), so its rate is roughly half —
+// calibrated empirically against real ElevenLabs TTS output, not guessed.
+const CHARS_PER_SECOND: Record<TargetLang, number> = {
+  es: 12,
+  'pt-BR': 13,
+  ja: 6,
+};
 
-// Brazilian Portuguese natural speaking pace: ~13 chars/second
-const CHARS_PER_SECOND_PT = 13;
+const LANG_LABELS: Record<TargetLang, string> = {
+  es: 'Latin American Spanish',
+  'pt-BR': 'Brazilian Portuguese',
+  ja: 'Japanese',
+};
 
 const TRANSLATE_PROMPT = `You are a professional dubbing adaptor for Latin American Spanish, specializing in identity security, AI identity, and cybersecurity content.
 
@@ -106,6 +117,63 @@ Input: JSON object {"id": {"translation": "Brazilian Portuguese text", "secs": N
 Output: JSON object {"id": "improved Brazilian Portuguese translation"}
 Every input id must appear in the output.`;
 
+const TRANSLATE_PROMPT_JA = `You are a professional dubbing adaptor for Japanese, specializing in identity security, AI identity, and cybersecurity content.
+
+Your job: produce a Japanese translation that fits naturally within the given time window when spoken aloud.
+
+TIMING RULE — most important:
+- Japanese natural speaking pace: ~6 characters per second (Japanese carries far more meaning per character than Spanish/Portuguese, and has no spaces)
+- You receive "secs": the exact seconds available for this segment
+- Target character count ≈ secs × 6
+- If direct translation is too long: paraphrase, use shorter synonyms, compress the idea — do NOT cut a sentence mid-thought
+- If direct translation fits or is shorter: use it as-is
+
+LANGUAGE RULES:
+- Standard Japanese, polite spoken register (です/ます form) — how a professional narrator would explain this out loud in a corporate video, not casual speech and not stiff written keigo
+- Domain vocabulary: 認証, 認可, デジタルアイデンティティ, アイデンティティプロバイダー, アクセス管理, 認証情報, トークン, 権限, ロール, 脅威, 脆弱性, AI, AIモデル, エージェント, エンドユーザー
+
+TECHNICAL TERMS — keep in English exactly as written (do not transliterate into katakana):
+Auth0, OAuth2, SAML, OIDC, Okta, SSO, JWT, API, SDK, CLI, LDAP, SCIM, SaaS, IDP, SP, Zero Trust, RBAC, ABAC — and any product name, acronym, or technical protocol
+
+TRANSCRIPTION FIXES — the source text comes from speech-to-text and may mishear these; always correct them:
+- "Octane" → "Oktane" (Okta's annual customer/partner conference)
+
+EXCEPTIONS — translate/adapt these:
+- MFA → "MFA" (keep the abbreviation as-is; it will be read letter by letter)
+- $ or "Dollars" / "Dollar" → "ドル"
+
+Input: JSON object {"id": {"text": "English text", "secs": N}}
+Output: JSON object {"id": "Japanese translation"}
+Every input id must appear in the output.`;
+
+const REVIEW_PROMPT_JA = `You are a Japanese dubbing quality reviewer specializing in identity security and AI content.
+
+Review each translation against its time budget. Return improved versions.
+
+CHECK:
+1. TIMING: Does the text fit in "secs" seconds at ~6 chars/second? If too long, shorten with synonyms. If fine, leave it.
+2. REGISTER: Polite spoken Japanese (です/ます), natural for a corporate narrator — not casual, not stiff written keigo.
+3. TECHNICAL TERMS: Auth0, OAuth2, SAML, Okta, SSO, JWT, API, SDK, etc. must stay in English exactly, not transliterated into katakana
+   EXCEPTIONS: MFA stays as "MFA"; "$" or "Dollars" → "ドル"
+   MISHEARD TERMS: "Octane" must read "Oktane" (Okta's conference), fix if present
+4. NATURALNESS: Reads like spoken explanation, not translated text
+
+Input: JSON object {"id": {"translation": "Japanese text", "secs": N}}
+Output: JSON object {"id": "improved Japanese translation"}
+Every input id must appear in the output.`;
+
+const TRANSLATE_PROMPTS: Record<TargetLang, string> = {
+  es: TRANSLATE_PROMPT,
+  'pt-BR': TRANSLATE_PROMPT_PT,
+  ja: TRANSLATE_PROMPT_JA,
+};
+
+const REVIEW_PROMPTS: Record<TargetLang, string> = {
+  es: REVIEW_PROMPT,
+  'pt-BR': REVIEW_PROMPT_PT,
+  ja: REVIEW_PROMPT_JA,
+};
+
 interface TranslateInput {
   text: string;
   secs: number;
@@ -136,10 +204,10 @@ async function claudeCall<T>(
 }
 
 async function translateSingle(seg: Segment, targetLang: TargetLang): Promise<string> {
-  const charsPerSec = targetLang === 'pt-BR' ? CHARS_PER_SECOND_PT : CHARS_PER_SECOND;
+  const charsPerSec = CHARS_PER_SECOND[targetLang];
   const targetChars = Math.round(seg.targetDuration * charsPerSec);
-  const translatePrompt = targetLang === 'pt-BR' ? TRANSLATE_PROMPT_PT : TRANSLATE_PROMPT;
-  const langLabel = targetLang === 'pt-BR' ? 'Brazilian Portuguese' : 'Latin American Spanish';
+  const translatePrompt = TRANSLATE_PROMPTS[targetLang];
+  const langLabel = LANG_LABELS[targetLang];
   const message = await client.messages.create({
     model: 'claude-sonnet-4-6',
     max_tokens: 512,
@@ -157,9 +225,9 @@ async function translateSingle(seg: Segment, targetLang: TargetLang): Promise<st
 export async function translateSegments(segments: Segment[], targetLang: TargetLang = 'es'): Promise<Segment[]> {
   const BATCH_SIZE = 20;
   const result = [...segments];
-  const charsPerSec = targetLang === 'pt-BR' ? CHARS_PER_SECOND_PT : CHARS_PER_SECOND;
-  const translatePrompt = targetLang === 'pt-BR' ? TRANSLATE_PROMPT_PT : TRANSLATE_PROMPT;
-  const reviewPrompt = targetLang === 'pt-BR' ? REVIEW_PROMPT_PT : REVIEW_PROMPT;
+  const charsPerSec = CHARS_PER_SECOND[targetLang];
+  const translatePrompt = TRANSLATE_PROMPTS[targetLang];
+  const reviewPrompt = REVIEW_PROMPTS[targetLang];
 
   for (let i = 0; i < segments.length; i += BATCH_SIZE) {
     const batch = segments.slice(i, i + BATCH_SIZE);

@@ -13,6 +13,7 @@ const TMP_DIR = path.join(process.cwd(), 'tmp');
 
 function parseTargetLang(value: unknown): TargetLang {
   if (value === 'pt-BR') return 'pt-BR';
+  if (value === 'ja') return 'ja';
   return 'es';
 }
 

@@ -3,9 +3,10 @@ export type Lang = 'en' | 'es' | 'pt';
 export const t = {
   en: {
     // Header
-    langLabel:          'English → Spanish / Portuguese BR',
+    langLabel:          'English → Spanish / Portuguese BR / Japanese',
     langLabelEs:        'English → Latin American Spanish',
     langLabelPt:        'English → Brazilian Portuguese',
+    langLabelJa:        'English → Japanese',
     // Page states
     dubbingComplete:    'Dubbing complete',
     videoReady:         'Your video is ready to download',
@@ -26,11 +27,14 @@ export const t = {
     uploading:          'Uploading',
     dubToSpanish:         'Dub to Spanish',
     dubToPortuguese:      'Dub to Portuguese BR',
+    dubToJapanese:        'Dub to Japanese',
     subtitleToSpanish:    'Subtitle to Spanish',
     subtitleToPortuguese: 'Subtitle to Portuguese BR',
+    subtitleToJapanese:   'Subtitle to Japanese',
     dubLangLabel:         'Language',
     dubLangEs:            'Spanish',
     dubLangPt:            'Portuguese BR',
+    dubLangJa:            'Japanese',
     modeLabel:            'Mode',
     modeDub:              'Dubbing',
     modeSub:              'Subtitles',
@@ -74,9 +78,10 @@ export const t = {
   },
   es: {
     // Header
-    langLabel:          'Inglés → Español / Portugués BR',
+    langLabel:          'Inglés → Español / Portugués BR / Japonés',
     langLabelEs:        'Inglés → Español Latinoamericano',
     langLabelPt:        'Inglés → Portugués Brasileño',
+    langLabelJa:        'Inglés → Japonés',
     // Page states
     dubbingComplete:    'Doblaje completado',
     videoReady:         'Tu video está listo para descargar',
@@ -97,11 +102,14 @@ export const t = {
     uploading:          'Subiendo',
     dubToSpanish:         'Doblar al español',
     dubToPortuguese:      'Doblar al portugués BR',
+    dubToJapanese:        'Doblar al japonés',
     subtitleToSpanish:    'Subtitular al español',
     subtitleToPortuguese: 'Subtitular al portugués BR',
+    subtitleToJapanese:   'Subtitular al japonés',
     dubLangLabel:         'Idioma',
     dubLangEs:            'Español',
     dubLangPt:            'Portugués BR',
+    dubLangJa:            'Japonés',
     modeLabel:            'Modo',
     modeDub:              'Doblaje',
     modeSub:              'Subtítulos',
@@ -145,9 +153,10 @@ export const t = {
   },
   pt: {
     // Header
-    langLabel:          'Inglês → Espanhol / Português BR',
+    langLabel:          'Inglês → Espanhol / Português BR / Japonês',
     langLabelEs:        'Inglês → Espanhol Latino-americano',
     langLabelPt:        'Inglês → Português Brasileiro',
+    langLabelJa:        'Inglês → Japonês',
     // Page states
     dubbingComplete:    'Dublagem concluída',
     videoReady:         'Seu vídeo está pronto para download',
@@ -168,11 +177,14 @@ export const t = {
     uploading:          'Enviando',
     dubToSpanish:         'Dublar para Espanhol',
     dubToPortuguese:      'Dublar para Português BR',
+    dubToJapanese:        'Dublar para Japonês',
     subtitleToSpanish:    'Legendar para Espanhol',
     subtitleToPortuguese: 'Legendar para Português BR',
+    subtitleToJapanese:   'Legendar para Japonês',
     dubLangLabel:         'Idioma',
     dubLangEs:            'Espanhol',
     dubLangPt:            'Português BR',
+    dubLangJa:            'Japonês',
     modeLabel:            'Modo',
     modeDub:              'Dublagem',
     modeSub:              'Legendas',

@@ -75,8 +75,49 @@ const PRONUNCIATION_MAP_PT: [RegExp, string][] = [
   [/\bU2F\b/g,                      'U 2 F'],
 ];
 
+// Japanese pronunciation map. Acronyms are spelled out in katakana letter
+// names (the standard way Japanese speakers read English initialisms aloud)
+// rather than transliterating the whole term, since technical terms/product
+// names stay in English per the translation prompt and the multilingual TTS
+// model reads embedded English words correctly on its own.
+const PRONUNCIATION_MAP_JA: [RegExp, string][] = [
+  // Currency
+  [/\$\s*([\d,]+\.?\d*)/g,          '$1ドル'],
+  [/\b(dollars?)\b/gi,              'ドル'],
+
+  // Acronyms spelled out in katakana letter names
+  [/\bMFA\b/g,                      'エム・エフ・エー'],
+  [/\bMCP(?!\w)/g,                   'エム・シー・ピー'],
+
+  // AI product names
+  [/\bChatGPT(?!\w)/gi,             'チャットジーピーティー'],
+  [/\bGPT-?4o(?!\w)/gi,             'ジーピーティーフォーオー'],
+  [/\bGPT-?4(?!\w)/gi,              'ジーピーティーフォー'],
+  [/\bGPT-?3\.5(?!\w)/gi,           'ジーピーティースリーポイントファイブ'],
+  [/\bGPT(?!\w)/g,                  'ジーピーティー'],
+
+  // Versioned protocols / product names with digits
+  [/\bAuth0\b/g,                    'オースゼロ'],
+  [/\bOAuth2\.0\b/gi,               'オーオースツーポイントゼロ'],
+  [/\bOAuth2\b/gi,                  'オーオースツー'],
+  [/\bSAMLv2\b/gi,                  'サムルバージョンツー'],
+  [/\bOpenID\b/gi,                  'オープンアイディー'],
+  [/\bLDAPv3\b/gi,                  'エルダップバージョンスリー'],
+  [/\bSCIMv2\b/gi,                  'スキムバージョンツー'],
+  [/\bW3C\b/g,                      'ダブリュースリーシー'],
+  [/\bWebAuthn\b/gi,                'ウェブオースン'],
+  [/\bFIDO2\b/gi,                   'ファイドツー'],
+  [/\bU2F\b/g,                      'ユーツーエフ'],
+];
+
+const PRONUNCIATION_MAPS: Record<TargetLang, [RegExp, string][]> = {
+  es: PRONUNCIATION_MAP,
+  'pt-BR': PRONUNCIATION_MAP_PT,
+  ja: PRONUNCIATION_MAP_JA,
+};
+
 function normalizePronunciation(text: string, targetLang: TargetLang): string {
-  const map = targetLang === 'pt-BR' ? PRONUNCIATION_MAP_PT : PRONUNCIATION_MAP;
+  const map = PRONUNCIATION_MAPS[targetLang];
   let out = text;
   for (const [pattern, replacement] of map) {
     out = out.replace(pattern, replacement);

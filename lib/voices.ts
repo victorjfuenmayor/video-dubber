@@ -17,11 +17,15 @@ export const VOICES = [
   { id: '1eBtZhneFpMPiYsjVTGl', name: 'Eduardo',     gender: 'male',   lang: 'pt-BR' },
   { id: 'xJlJsFPYWbVULW1DtDlv', name: 'Mercos',      gender: 'male',   lang: 'pt-BR' },
   { id: 'AGNkIY6dMkIkc3g53Rdb', name: 'Rafael',      gender: 'male',   lang: 'pt-BR' },
+  { id: 'Mv8AjrYZCBkdsmDHNwcB', name: 'Ishibashi',   gender: 'male',   lang: 'ja'   },
+  { id: 'LjaWbdfZxis9YRrL8L87', name: 'Ryu',         gender: 'male',   lang: 'ja'   },
+  { id: 'e2BxPFZzO0e4DYAokSlV', name: 'Rie',         gender: 'female', lang: 'ja'   },
+  { id: 'LIisRj2veIKEBdr6KZ5y', name: 'Hadou',       gender: 'male',   lang: 'ja'   },
 ] as const;
 
 export const DEFAULT_VOICE_ID = VOICES[0].id;
 
-export type TargetLang = 'es' | 'pt-BR';
+export type TargetLang = 'es' | 'pt-BR' | 'ja';
 
 export function getVoicesByLang(lang: TargetLang) {
   return VOICES.filter(v => v.lang === lang);

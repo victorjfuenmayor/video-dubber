@@ -26,7 +26,7 @@ function PageContent() {
   const handleError = useCallback((msg: string) => { setError(msg); setState('error'); }, []);
   const handleReset = () => { setState('idle'); setJobId(null); setError(null); };
 
-  const headerLangLabel = targetLang === 'pt-BR' ? tr.langLabelPt : tr.langLabelEs;
+  const headerLangLabel = { es: tr.langLabelEs, 'pt-BR': tr.langLabelPt, ja: tr.langLabelJa }[targetLang];
 
   const langButtonLabel = lang === 'en' ? 'EN' : lang === 'es' ? 'ES' : 'PT';
 

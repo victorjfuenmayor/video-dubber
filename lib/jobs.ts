@@ -12,6 +12,9 @@ export interface JobState {
   voiceName?: string;
   targetLang?: string;
   originalName?: string;
+  mode?: 'dub' | 'subtitle';
+  sourceUrl?: string;
+  clientIp?: string;
 }
 
 const jobs = new Map<string, JobState>();

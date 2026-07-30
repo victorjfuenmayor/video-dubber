@@ -18,9 +18,17 @@ function detectSpeechOnset(audioPath: string): Promise<number> {
     let stderr = '';
     proc.stderr.on('data', (d: Buffer) => { stderr += d.toString(); });
     proc.on('close', () => {
-      // silence_end is when the first period of silence ends = speech starts
-      const match = stderr.match(/silence_end: ([\d.]+)/);
-      resolve(match ? parseFloat(match[1]) : 0);
+      // silence_end of the FIRST silence period = when speech starts, but only
+      // if that silence actually began at the start of the file. If the video
+      // opens with speech, the first silence period detected could be a
+      // mid-video pause — treating that as the onset would shift every
+      // segment by a bogus offset.
+      const startMatch = stderr.match(/silence_start: ([\d.]+)/);
+      const endMatch = stderr.match(/silence_end: ([\d.]+)/);
+      const silenceStart = startMatch ? parseFloat(startMatch[1]) : null;
+      const silenceEnd = endMatch ? parseFloat(endMatch[1]) : null;
+      const isLeadingSilence = silenceStart !== null && silenceStart < 2 && silenceEnd !== null;
+      resolve(isLeadingSilence ? silenceEnd! : 0);
     });
     proc.on('error', () => resolve(0));
   });

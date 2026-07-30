@@ -29,7 +29,7 @@ export default function FeedbackModal({ onClose }: Props) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!message.trim()) return;
+    if (!message.trim() || !name.trim() || !email.trim()) return;
     setStatus('sending');
     try {
       const res = await fetch('/api/feedback', {
@@ -117,14 +117,14 @@ export default function FeedbackModal({ onClose }: Props) {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.625rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.6875rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.375rem' }}>{tr.nameLabel}</label>
-                  <input value={name} onChange={e => setName(e.target.value)} placeholder={tr.optional}
+                  <input value={name} onChange={e => setName(e.target.value)} required
                     style={inputStyle}
                     onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
                     onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')} />
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.6875rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.375rem' }}>{tr.emailLabel}</label>
-                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder={tr.optional}
+                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
                     style={inputStyle}
                     onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
                     onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')} />
@@ -142,8 +142,8 @@ export default function FeedbackModal({ onClose }: Props) {
                   style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', fontWeight: 500, border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--text-muted)', borderRadius: '0.625rem', cursor: 'pointer' }}>
                   {tr.cancel}
                 </button>
-                <button type="submit" disabled={status === 'sending' || !message.trim()}
-                  style={{ padding: '0.5rem 1.25rem', fontSize: '0.875rem', fontWeight: 600, background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '0.625rem', cursor: status === 'sending' ? 'wait' : 'pointer', opacity: !message.trim() ? 0.5 : 1, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <button type="submit" disabled={status === 'sending' || !message.trim() || !name.trim() || !email.trim()}
+                  style={{ padding: '0.5rem 1.25rem', fontSize: '0.875rem', fontWeight: 600, background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '0.625rem', cursor: status === 'sending' ? 'wait' : 'pointer', opacity: (!message.trim() || !name.trim() || !email.trim()) ? 0.5 : 1, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   {status === 'sending' ? (
                     <><span style={{ width: '0.875rem', height: '0.875rem', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'block' }} /> {tr.sending}</>
                   ) : tr.sendFeedback}

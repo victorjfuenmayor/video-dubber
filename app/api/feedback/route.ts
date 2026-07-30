@@ -5,8 +5,8 @@ export async function POST(req: NextRequest) {
   const resend = new Resend(process.env.RESEND_API_KEY);
   const { type, message, name, email } = await req.json();
 
-  if (!message?.trim()) {
-    return NextResponse.json({ error: 'Message is required' }, { status: 400 });
+  if (!message?.trim() || !name?.trim() || !email?.trim()) {
+    return NextResponse.json({ error: 'Name, email, and message are required' }, { status: 400 });
   }
 
   const toEmail = process.env.FEEDBACK_TO_EMAIL;

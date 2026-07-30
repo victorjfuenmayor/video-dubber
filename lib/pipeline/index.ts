@@ -59,15 +59,19 @@ export async function runPipeline(
 
     // Step 3: Transcribe
     emit('transcribe', 'running', 'Transcribing audio with Whisper...');
-    const segments = await transcribe(audioPath);
+    const rawSegments = await transcribe(audioPath);
+    // Whisper's own segment-level text grouping isn't trustworthy (it can
+    // split a phrase mid-clause with zero gap), so every mode starts from
+    // phrases re-derived purely from real pauses in the word-level timestamps.
+    const segments = splitSegmentsAtPauses(rawSegments);
     emit('transcribe', 'done', `Found ${segments.length} segments`);
     checkCancelled();
 
-    // For subtitles: split at real speech pauses so each phrase is translated
-    // and timed on its own (splitting already-translated text afterward can't
+    // For subtitles: use those pause-bounded phrases directly, translated and
+    // timed on their own (splitting already-translated text afterward can't
     // know where a clause boundary falls in the target language).
-    // For dubbing: merge into full sentences so TTS has the full time window.
-    const segmentsToTranslate = mode === 'subtitle' ? splitSegmentsAtPauses(segments) : mergeSentenceSegments(segments);
+    // For dubbing: merge them into full sentences so TTS has the full time window.
+    const segmentsToTranslate = mode === 'subtitle' ? segments : mergeSentenceSegments(segments);
 
     emit('translate', 'running', `Translating ${segmentsToTranslate.length} segments...`);
     const translated = await translateSegments(segmentsToTranslate, targetLang);

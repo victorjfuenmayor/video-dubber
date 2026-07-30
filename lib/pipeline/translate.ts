@@ -33,6 +33,9 @@ LANGUAGE RULES:
 TECHNICAL TERMS — keep in English exactly as written:
 Auth0, OAuth2, SAML, OIDC, Okta, SSO, JWT, API, SDK, CLI, LDAP, SCIM, SaaS, IDP, SP, Zero Trust, RBAC, ABAC — and any product name, acronym, or technical protocol
 
+TRANSCRIPTION FIXES — the source text comes from speech-to-text and may mishear these; always correct them:
+- "Octane" → "Oktane" (Okta's annual customer/partner conference)
+
 EXCEPTIONS — translate these to Latin American Spanish:
 - MFA → "MFA" (keep the abbreviation as-is; it will be read letter by letter: M-F-A)
 - $ or "Dollars" / "Dollar" → "dólares"
@@ -50,6 +53,7 @@ CHECK:
 2. LATIN AMERICAN: Fix any Spain Spanish (ordenador, móvil, vosotros, vale, coche) → Latin American equivalents
 3. TECHNICAL TERMS: Auth0, OAuth2, SAML, Okta, SSO, JWT, API, SDK, etc. must stay in English exactly
    EXCEPTIONS: MFA stays as "MFA" (abbreviated, read as M-F-A); "$" or "Dollars" → "dólares"
+   MISHEARD TERMS: "Octane" must read "Oktane" (Okta's conference), fix if present
 4. NATURALNESS: Reads like spoken explanation, not translated text
 
 Input: JSON object {"id": {"translation": "Spanish text", "secs": N}}
@@ -75,6 +79,9 @@ LANGUAGE RULES:
 TECHNICAL TERMS — keep in English exactly as written:
 Auth0, OAuth2, SAML, OIDC, Okta, SSO, JWT, API, SDK, CLI, LDAP, SCIM, SaaS, IDP, SP, Zero Trust, RBAC, ABAC — and any product name, acronym, or technical protocol
 
+TRANSCRIPTION FIXES — the source text comes from speech-to-text and may mishear these; always correct them:
+- "Octane" → "Oktane" (Okta's annual customer/partner conference)
+
 EXCEPTIONS — translate/adapt these:
 - MFA → "MFA" (keep the abbreviation as-is; it will be read letter by letter in Portuguese: M-F-A)
 - $ or "Dollars" / "Dollar" → "dólares"
@@ -92,6 +99,7 @@ CHECK:
 2. BRAZILIAN PORTUGUESE: Ensure você (not vós), computador (not ordenador/computadora), celular (not telemóvel), carro, IA (not AI when speaking). Fix any European Portuguese forms.
 3. TECHNICAL TERMS: Auth0, OAuth2, SAML, Okta, SSO, JWT, API, SDK, etc. must stay in English exactly
    EXCEPTIONS: MFA stays as "MFA" (abbreviated, read as M-F-A); "$" or "Dollars" → "dólares"
+   MISHEARD TERMS: "Octane" must read "Oktane" (Okta's conference), fix if present
 4. NATURALNESS: Reads like spoken explanation, not translated text
 
 Input: JSON object {"id": {"translation": "Brazilian Portuguese text", "secs": N}}

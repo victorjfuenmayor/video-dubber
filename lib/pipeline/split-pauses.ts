@@ -10,6 +10,12 @@ const PAUSE_GAP_SECONDS = 0.35;
 // treat it as a swallowed pause too.
 const LONG_WORD_SECONDS = 0.9;
 
+// No genuine spoken word takes less than this long to say. Whisper
+// occasionally hallucinates a short word over background music or ambient
+// noise after real speech has ended — a piece this brief is that artifact,
+// not real dialogue.
+const MIN_SEGMENT_SECONDS = 0.2;
+
 // Splits a segment into multiple segments wherever its own word-level
 // timestamps show a real speech pause (Whisper sometimes bundles several
 // short sentences into one segment when there's no strong acoustic break).
@@ -25,7 +31,7 @@ export function splitSegmentsAtPauses(segments: Segment[]): Segment[] {
   for (const seg of segments) {
     const words = seg.words;
     if (!words || words.length < 2) {
-      result.push({ ...seg, id: nextId++ });
+      if (seg.endTime - seg.startTime >= MIN_SEGMENT_SECONDS) result.push({ ...seg, id: nextId++ });
       continue;
     }
 
@@ -39,21 +45,25 @@ export function splitSegmentsAtPauses(segments: Segment[]): Segment[] {
       }
     }
     if (boundaries.length === 0) {
-      result.push({ ...seg, id: nextId++ });
+      if (seg.endTime - seg.startTime >= MIN_SEGMENT_SECONDS) result.push({ ...seg, id: nextId++ });
       continue;
     }
 
     let wordStart = 0;
     for (const wordEnd of [...boundaries, words.length - 1]) {
       const slice = words.slice(wordStart, wordEnd + 1);
-      result.push({
-        id: nextId++,
-        startTime: slice[0].start,
-        endTime: slice[slice.length - 1].end,
-        originalText: slice.map((w) => w.text).join(' '),
-        targetDuration: slice[slice.length - 1].end - slice[0].start,
-        words: slice,
-      });
+      const start = slice[0].start;
+      const end = slice[slice.length - 1].end;
+      if (end - start >= MIN_SEGMENT_SECONDS) {
+        result.push({
+          id: nextId++,
+          startTime: start,
+          endTime: end,
+          originalText: slice.map((w) => w.text).join(' '),
+          targetDuration: end - start,
+          words: slice,
+        });
+      }
       wordStart = wordEnd + 1;
     }
   }

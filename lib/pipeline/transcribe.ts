@@ -18,16 +18,10 @@ interface GroqResponse {
   words?: GroqWord[];
 }
 
-interface AlignedSegment {
-  start: number;
-  end: number;
-  text: string;
-  words: GroqWord[];
-}
-
-// Same overlap problem as clipOverlaps below, but between consecutive words —
-// clip it here first so every downstream boundary (segments and the
-// pause-based subtitle pieces built from words) inherits monotonic timing.
+// Whisper's word-level alignment isn't always strictly monotonic — the end
+// of one word can land after the start of the next (observed overlaps up to
+// ~0.5s). Left alone this produces subtitles that jump backward in time.
+// Clip each overlap at its midpoint so words stay sequential.
 function clipWordOverlaps(words: GroqWord[]): void {
   for (let i = 1; i < words.length; i++) {
     if (words[i].start < words[i - 1].end) {
@@ -38,54 +32,18 @@ function clipWordOverlaps(words: GroqWord[]): void {
   }
 }
 
-// Whisper's segment-level start/end can degrade into a naive uniform guess for
-// short punchy phrases over music/sound design (common in brand/marketing
-// videos), producing back-to-back segments with suspiciously round durations
-// and no gaps even where real pauses exist. Word-level timestamps come from
-// per-token alignment and don't have this failure mode, so we re-derive each
-// segment's real boundaries from its first and last word, and keep the
-// per-word spans so downstream subtitle chunking can find real pauses too.
-function realignWithWords(segments: GroqSegment[], words: GroqWord[]): AlignedSegment[] {
-  let wi = 0;
-  const aligned: AlignedSegment[] = [];
-  for (const seg of segments) {
-    const wordCount = seg.text.trim().split(/\s+/).filter(Boolean).length;
-    const chunk = words.slice(wi, wi + wordCount);
-    if (chunk.length !== wordCount) {
-      // Word/segment tokenization mismatch — keep the original segment timing.
-      aligned.push({ start: seg.start, end: seg.end, text: seg.text, words: [] });
-      continue;
-    }
-    aligned.push({ start: chunk[0].start, end: chunk[chunk.length - 1].end, text: seg.text, words: chunk });
-    wi += wordCount;
-  }
-  return aligned;
-}
+// Whisper folding a trailing pause into a word's own duration (see
+// splitSegmentsAtPauses) is normally a fraction of a second. Near the end of
+// a clip it can run away much further — a whole musical outro absorbed into
+// the last word, reported as many seconds long. No single word legitimately
+// takes that long to say, so cap how much of a word's own span we trust.
+const MAX_WORD_SECONDS = 2;
 
-// Whisper's word-level alignment isn't always strictly monotonic across a
-// segment boundary — the end of one segment's last word can land after the
-// start of the next segment's first word (observed overlaps up to ~0.5s).
-// Left alone this produces subtitles that jump backward in time. Clip each
-// overlap at its midpoint so segments stay sequential.
-function clipOverlaps(segments: AlignedSegment[]): void {
-  for (let i = 1; i < segments.length; i++) {
-    const prev = segments[i - 1];
-    const curr = segments[i];
-    if (curr.start < prev.end) {
-      const midpoint = (prev.end + curr.start) / 2;
-      prev.end = midpoint;
-      curr.start = midpoint;
-      if (prev.words.length) prev.words[prev.words.length - 1].end = midpoint;
-      if (curr.words.length) curr.words[0].start = midpoint;
-    }
+function capWordDurations(words: GroqWord[]): void {
+  for (const w of words) {
+    if (w.end - w.start > MAX_WORD_SECONDS) w.end = w.start + MAX_WORD_SECONDS;
   }
 }
-
-// No genuine spoken word takes less than this long to say. Whisper
-// occasionally hallucinates a short word over background music or ambient
-// noise after real speech has ended (common in a video's musical outro) —
-// a segment this brief is that artifact, not real dialogue.
-const MIN_SEGMENT_SECONDS = 0.2;
 
 export async function transcribe(audioPath: string): Promise<Segment[]> {
   const apiKey = process.env.GROQ_API_KEY;
@@ -114,22 +72,35 @@ export async function transcribe(audioPath: string): Promise<Segment[]> {
   }
 
   const data: GroqResponse = await res.json();
-  if (data.words?.length) clipWordOverlaps(data.words);
 
-  const rawSegments: AlignedSegment[] = data.words?.length
-    ? realignWithWords(data.segments ?? [], data.words)
-    : (data.segments ?? []).map((seg) => ({ start: seg.start, end: seg.end, text: seg.text, words: [] }));
+  // Whisper's own segment-level text grouping isn't reliable — it will
+  // sometimes split a phrase mid-clause with zero gap (e.g. "Okta
+  // Integration" | "Network...", or "Where are my" | "agents?"), which has
+  // nothing to do with real speech structure. Word-level timestamps are the
+  // one reliable signal, so the whole transcript is treated as a single
+  // stream of words; real phrase boundaries are decided downstream purely
+  // from pause detection over that stream (see splitSegmentsAtPauses), not
+  // from wherever Whisper happened to break its own segments.
+  if (data.words?.length) {
+    clipWordOverlaps(data.words);
+    capWordDurations(data.words);
+    const words = data.words;
+    return [{
+      id: 0,
+      startTime: words[0].start,
+      endTime: words[words.length - 1].end,
+      originalText: words.map((w) => w.word).join(' ').trim(),
+      targetDuration: words[words.length - 1].end - words[0].start,
+      words: words.map((w) => ({ start: w.start, end: w.end, text: w.word })),
+    }];
+  }
 
-  clipOverlaps(rawSegments);
-
-  const filtered = rawSegments.filter((seg) => seg.end - seg.start >= MIN_SEGMENT_SECONDS);
-
-  return filtered.map((seg, i) => ({
+  // Fallback for the rare case where word-level timestamps aren't returned.
+  return (data.segments ?? []).map((seg, i) => ({
     id: i,
     startTime: seg.start,
     endTime: seg.end,
     originalText: seg.text.trim(),
     targetDuration: seg.end - seg.start,
-    words: seg.words.length ? seg.words.map((w) => ({ start: w.start, end: w.end, text: w.word })) : undefined,
   }));
 }

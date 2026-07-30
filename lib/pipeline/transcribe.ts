@@ -1,38 +1,5 @@
 import fs from 'fs';
-import { spawn } from 'child_process';
 import type { Segment } from './types';
-
-const FFMPEG = process.env.FFMPEG_PATH ?? 'ffmpeg';
-
-// Detect when speech actually starts in the audio file using ffmpeg silencedetect.
-// Whisper (via Groq) strips leading silence and reports timestamps from t=0,
-// so we need to measure the real onset and shift all segment timestamps.
-function detectSpeechOnset(audioPath: string): Promise<number> {
-  return new Promise((resolve) => {
-    const proc = spawn(FFMPEG, [
-      '-i', audioPath,
-      '-af', 'silencedetect=n=-40dB:d=0.3',
-      '-f', 'null', '-',
-    ], { stdio: ['ignore', 'ignore', 'pipe'] });
-
-    let stderr = '';
-    proc.stderr.on('data', (d: Buffer) => { stderr += d.toString(); });
-    proc.on('close', () => {
-      // silence_end of the FIRST silence period = when speech starts, but only
-      // if that silence actually began at the start of the file. If the video
-      // opens with speech, the first silence period detected could be a
-      // mid-video pause — treating that as the onset would shift every
-      // segment by a bogus offset.
-      const startMatch = stderr.match(/silence_start: ([\d.]+)/);
-      const endMatch = stderr.match(/silence_end: ([\d.]+)/);
-      const silenceStart = startMatch ? parseFloat(startMatch[1]) : null;
-      const silenceEnd = endMatch ? parseFloat(endMatch[1]) : null;
-      const isLeadingSilence = silenceStart !== null && silenceStart < 2 && silenceEnd !== null;
-      resolve(isLeadingSilence ? silenceEnd! : 0);
-    });
-    proc.on('error', () => resolve(0));
-  });
-}
 
 interface GroqSegment {
   text: string;
@@ -40,8 +7,38 @@ interface GroqSegment {
   end: number;
 }
 
+interface GroqWord {
+  word: string;
+  start: number;
+  end: number;
+}
+
 interface GroqResponse {
   segments: GroqSegment[];
+  words?: GroqWord[];
+}
+
+// Whisper's segment-level start/end can degrade into a naive uniform guess for
+// short punchy phrases over music/sound design (common in brand/marketing
+// videos), producing back-to-back segments with suspiciously round durations
+// and no gaps even where real pauses exist. Word-level timestamps come from
+// per-token alignment and don't have this failure mode, so we re-derive each
+// segment's real boundaries from its first and last word.
+function realignWithWords(segments: GroqSegment[], words: GroqWord[]): GroqSegment[] {
+  let wi = 0;
+  const aligned: GroqSegment[] = [];
+  for (const seg of segments) {
+    const wordCount = seg.text.trim().split(/\s+/).filter(Boolean).length;
+    const chunk = words.slice(wi, wi + wordCount);
+    if (chunk.length !== wordCount) {
+      // Word/segment tokenization mismatch — keep the original segment timing.
+      aligned.push(seg);
+      continue;
+    }
+    aligned.push({ ...seg, start: chunk[0].start, end: chunk[chunk.length - 1].end });
+    wi += wordCount;
+  }
+  return aligned;
 }
 
 export async function transcribe(audioPath: string): Promise<Segment[]> {
@@ -56,6 +53,7 @@ export async function transcribe(audioPath: string): Promise<Segment[]> {
   form.append('model', 'whisper-large-v3');
   form.append('response_format', 'verbose_json');
   form.append('timestamp_granularities[]', 'segment');
+  form.append('timestamp_granularities[]', 'word');
   form.append('language', 'en');
 
   const res = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
@@ -70,29 +68,15 @@ export async function transcribe(audioPath: string): Promise<Segment[]> {
   }
 
   const data: GroqResponse = await res.json();
-  const rawSegments = data.segments ?? [];
+  const rawSegments = data.words?.length
+    ? realignWithWords(data.segments ?? [], data.words)
+    : data.segments ?? [];
 
-  const rawResult = rawSegments.map((seg, i) => ({
+  return rawSegments.map((seg, i) => ({
     id: i,
     startTime: seg.start,
     endTime: seg.end,
     originalText: seg.text.trim(),
     targetDuration: seg.end - seg.start,
-  }));
-
-  if (rawResult.length === 0) return rawResult;
-
-  // Calculate how much Whisper shifted timestamps by comparing
-  // its first segment start against when speech actually begins in the file.
-  const speechOnset = await detectSpeechOnset(audioPath);
-  const whisperOffset = speechOnset - rawResult[0].startTime;
-
-  // Only apply if the offset is meaningful (>0.5s) to avoid overcorrecting noise
-  if (whisperOffset < 0.5) return rawResult;
-
-  return rawResult.map((seg) => ({
-    ...seg,
-    startTime: seg.startTime + whisperOffset,
-    endTime: seg.endTime + whisperOffset,
   }));
 }

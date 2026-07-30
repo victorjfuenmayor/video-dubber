@@ -45,6 +45,31 @@ function capWordDurations(words: GroqWord[]): void {
   }
 }
 
+// The very first word of the transcript has nothing before it to have
+// swallowed a pause from, so if its own reported duration is implausibly
+// long, the excess can only be a musical intro or lead-in silence — not the
+// word itself. This happens even when the audio has no detectable acoustic
+// silence (a continuous instrumental score before vocals begin), so
+// amplitude-based onset detection can't catch it. In practice the whole
+// reported span tends to be an unreliable placeholder, not just prepended
+// silence, so anchoring off it (e.g. trimming only the start) still lands
+// far from the real onset. Anchoring backward from the next word — which
+// has a real word before it and is far more trustworthy — with a plausible
+// single-word duration and pause gets much closer.
+const MAX_FIRST_WORD_SECONDS = 0.9;
+const ASSUMED_FIRST_WORD_DURATION = 0.5;
+const ASSUMED_PAUSE_BEFORE_NEXT = 0.6;
+
+function capLeadingSilence(words: GroqWord[]): void {
+  if (words.length < 2) return;
+  const [first, second] = words;
+  if (first.end - first.start > MAX_FIRST_WORD_SECONDS) {
+    const end = Math.max(0, second.start - ASSUMED_PAUSE_BEFORE_NEXT);
+    first.end = end;
+    first.start = Math.max(0, end - ASSUMED_FIRST_WORD_DURATION);
+  }
+}
+
 export async function transcribe(audioPath: string): Promise<Segment[]> {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) throw new Error('GROQ_API_KEY is not set');
@@ -84,6 +109,7 @@ export async function transcribe(audioPath: string): Promise<Segment[]> {
   if (data.words?.length) {
     clipWordOverlaps(data.words);
     capWordDurations(data.words);
+    capLeadingSilence(data.words);
     const words = data.words;
     return [{
       id: 0,

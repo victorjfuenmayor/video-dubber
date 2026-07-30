@@ -63,11 +63,15 @@ export async function generateSrtFile(segments: Segment[], jobDir: string): Prom
   for (const s of segments.filter(s => s.translatedText)) {
     const chunks = splitIntoChunks(s.translatedText!);
     const duration = s.endTime - s.startTime;
-    const chunkDuration = duration / chunks.length;
+    const chunkChars = chunks.map((c) => c.replace(/\n/g, ' ').length);
+    const totalChars = chunkChars.reduce((sum, n) => sum + n, 0);
 
+    let cursor = s.startTime;
     chunks.forEach((chunk, i) => {
-      const start = s.startTime + i * chunkDuration;
-      const end   = s.startTime + (i + 1) * chunkDuration;
+      const share = totalChars > 0 ? chunkChars[i] / totalChars : 1 / chunks.length;
+      const start = cursor;
+      const end   = i === chunks.length - 1 ? s.endTime : start + duration * share;
+      cursor = end;
       entries.push([
         String(counter++),
         `${toSrtTime(start)} --> ${toSrtTime(end)}`,

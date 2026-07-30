@@ -72,19 +72,7 @@ export async function transcribe(audioPath: string): Promise<Segment[]> {
   const data: GroqResponse = await res.json();
   const rawSegments = data.segments ?? [];
 
-  // Merge very short segments (<1.5s) into adjacent ones for better translation quality
-  const merged: GroqSegment[] = [];
-  for (const seg of rawSegments) {
-    if ((seg.end - seg.start) < 1.5 && merged.length > 0) {
-      const last = merged[merged.length - 1];
-      last.text += ' ' + seg.text.trim();
-      last.end = seg.end;
-    } else {
-      merged.push({ ...seg });
-    }
-  }
-
-  const rawResult = merged.map((seg, i) => ({
+  const rawResult = rawSegments.map((seg, i) => ({
     id: i,
     startTime: seg.start,
     endTime: seg.end,

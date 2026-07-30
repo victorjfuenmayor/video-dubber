@@ -4,7 +4,7 @@ import type { TargetLang } from '@/lib/voices';
 
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
-  baseURL: 'https://api.anthropic.com',
+  baseURL: process.env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com',
 });
 
 // Spanish natural speaking pace: ~2.2 words/second, ~12 chars/second

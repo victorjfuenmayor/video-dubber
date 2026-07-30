@@ -6,6 +6,7 @@ import { extractAudio } from './extract-audio';
 import { transcribe } from './transcribe';
 import { translateSegments } from './translate';
 import { mergeSentenceSegments } from './merge-sentences';
+import { splitSegmentsAtPauses } from './split-pauses';
 import { generateTTS, DEFAULT_VOICE_ID } from './tts';
 import { speedMatchSegments } from './timing';
 import { muxDubbedVideo } from './mux';
@@ -62,9 +63,11 @@ export async function runPipeline(
     emit('transcribe', 'done', `Found ${segments.length} segments`);
     checkCancelled();
 
-    // For subtitles: keep raw Whisper segments (short, in sync with speech)
-    // For dubbing: merge into full sentences so TTS has the full time window
-    const segmentsToTranslate = mode === 'subtitle' ? segments : mergeSentenceSegments(segments);
+    // For subtitles: split at real speech pauses so each phrase is translated
+    // and timed on its own (splitting already-translated text afterward can't
+    // know where a clause boundary falls in the target language).
+    // For dubbing: merge into full sentences so TTS has the full time window.
+    const segmentsToTranslate = mode === 'subtitle' ? splitSegmentsAtPauses(segments) : mergeSentenceSegments(segments);
 
     emit('translate', 'running', `Translating ${segmentsToTranslate.length} segments...`);
     const translated = await translateSegments(segmentsToTranslate, targetLang);

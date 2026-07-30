@@ -16,6 +16,21 @@ const LONG_WORD_SECONDS = 0.9;
 // not real dialogue.
 const MIN_SEGMENT_SECONDS = 0.2;
 
+// A narrator can pause dramatically mid-sentence (no terminal punctuation)
+// purely for delivery — e.g. "Identity." *beat* "has never been more
+// important...". The pause is real, but splitting there strands a tiny,
+// grammatically unfinished fragment as its own caption with an empty gap
+// after it. A piece this short that doesn't end a sentence gets folded into
+// its neighbor instead.
+const MIN_WORDS_PER_PIECE = 3;
+
+// Only rescue a short fragment by attaching it to a neighbor that's clearly a
+// real continuation — not another short fragment. Whisper's punctuation is
+// inconsistent between calls (a run of short lines can lose their periods
+// together), and without this guard a chain of several short, unpunctuated
+// pieces in a row cascades into one fused into an unrelated later line.
+const MIN_MERGE_TARGET_WORDS = 4;
+
 // Splits a segment into multiple segments wherever its own word-level
 // timestamps show a real speech pause (Whisper sometimes bundles several
 // short sentences into one segment when there's no strong acoustic break).
@@ -49,9 +64,34 @@ export function splitSegmentsAtPauses(segments: Segment[]): Segment[] {
       continue;
     }
 
+    const ranges: Array<[number, number]> = [];
     let wordStart = 0;
     for (const wordEnd of [...boundaries, words.length - 1]) {
-      const slice = words.slice(wordStart, wordEnd + 1);
+      ranges.push([wordStart, wordEnd]);
+      wordStart = wordEnd + 1;
+    }
+
+    const wordCount = ([s, e]: [number, number]) => e - s + 1;
+    const isUnfinishedFragment = ([s, e]: [number, number]) =>
+      wordCount([s, e]) < MIN_WORDS_PER_PIECE && !/[.!?]$/.test(words[e].text.trim());
+
+    for (let i = ranges.length - 2; i >= 0; i--) {
+      if (isUnfinishedFragment(ranges[i]) && wordCount(ranges[i + 1]) >= MIN_MERGE_TARGET_WORDS) {
+        ranges[i + 1][0] = ranges[i][0];
+        ranges.splice(i, 1);
+      }
+    }
+    if (
+      ranges.length > 1 &&
+      isUnfinishedFragment(ranges[ranges.length - 1]) &&
+      wordCount(ranges[ranges.length - 2]) >= MIN_MERGE_TARGET_WORDS
+    ) {
+      ranges[ranges.length - 2][1] = ranges[ranges.length - 1][1];
+      ranges.pop();
+    }
+
+    for (const [s, e] of ranges) {
+      const slice = words.slice(s, e + 1);
       const start = slice[0].start;
       const end = slice[slice.length - 1].end;
       if (end - start >= MIN_SEGMENT_SECONDS) {
@@ -64,7 +104,6 @@ export function splitSegmentsAtPauses(segments: Segment[]): Segment[] {
           words: slice,
         });
       }
-      wordStart = wordEnd + 1;
     }
   }
 

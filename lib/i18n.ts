@@ -1,4 +1,4 @@
-export type Lang = 'en' | 'es' | 'pt';
+export type Lang = 'en' | 'es' | 'pt' | 'ja';
 
 export const t = {
   en: {
@@ -225,6 +225,81 @@ export const t = {
     thankYou:           'Obrigado!',
     feedbackSent:       'Seu feedback foi enviado.',
     done:               'Concluído',
+  },
+  ja: {
+    // Header
+    langLabel:          '英語 → スペイン語 / ポルトガル語（BR） / 日本語',
+    langLabelEs:        '英語 → ラテンアメリカスペイン語',
+    langLabelPt:        '英語 → ブラジルポルトガル語',
+    langLabelJa:        '英語 → 日本語',
+    // Page states
+    dubbingComplete:    '吹き替えが完了しました',
+    videoReady:         '動画のダウンロード準備が整いました',
+    dubAnother:         '別の動画を吹き替える',
+    tryAgain:           '再試行',
+    poweredBy:          'Groq・ElevenLabs・Claude 提供',
+    feedback:           'フィードバック',
+    // UploadForm
+    uploadFile:         'ファイルをアップロード',
+    youtubeUrl:         'YouTube URL',
+    clickToSelect:      'クリックまたは動画をドラッグして選択',
+    fileTypes:          'MP4, MOV, AVI, MKV',
+    maxDuration:        '10分以内を推奨',
+    voice:              '音声',
+    female:             '女性',
+    male:               '男性',
+    starting:           '開始中…',
+    uploading:          'アップロード中',
+    dubToSpanish:         'スペイン語に吹き替え',
+    dubToPortuguese:      'ポルトガル語（BR）に吹き替え',
+    dubToJapanese:        '日本語に吹き替え',
+    subtitleToSpanish:    'スペイン語の字幕を作成',
+    subtitleToPortuguese: 'ポルトガル語（BR）の字幕を作成',
+    subtitleToJapanese:   '日本語の字幕を作成',
+    dubLangLabel:         '言語',
+    dubLangEs:            'スペイン語',
+    dubLangPt:            'ポルトガル語（BR）',
+    dubLangJa:            '日本語',
+    modeLabel:            'モード',
+    modeDub:              '吹き替え',
+    modeSub:              '字幕',
+    cancelJob:          'キャンセル',
+    noFile:             'ファイルが選択されていません',
+    noUrl:              'URLが入力されていません',
+    youtubeDisabled:    'このサーバーではYouTubeのダウンロードは利用できません。動画をダウンロードしてファイルとしてアップロードしてください。',
+    // ProgressDisplay
+    processing:         '処理中',
+    connectionLost:     '接続が失われました',
+    steps: {
+      download:         'ダウンロード',
+      extract_audio:    '音声を抽出',
+      transcribe:       '文字起こし',
+      translate:        '翻訳',
+      tts:              '音声生成',
+      timing:           'タイミング調整',
+      mux:              '合成',
+      subtitle_burn:    '字幕を書き込み',
+    },
+    // DownloadButton
+    downloadVideo:      '吹き替え動画をダウンロード',
+    downloadSubtitles:  '字幕をダウンロード（.srt）',
+    // FeedbackModal
+    shareFeeback:       'フィードバックを共有',
+    helpImprove:        'Video Dubberの改善にご協力ください',
+    suggestion:         '提案',
+    bugReport:          '不具合の報告',
+    generalFeedback:    '一般的なフィードバック',
+    messageLabel:       'メッセージ *',
+    messagePlaceholder: '提案や報告内容を記入してください…',
+    nameLabel:          '名前',
+    emailLabel:         'メール',
+    optional:           '任意',
+    cancel:             'キャンセル',
+    sendFeedback:       'フィードバックを送信',
+    sending:            '送信中…',
+    thankYou:           'ありがとうございます！',
+    feedbackSent:       'フィードバックを送信しました。',
+    done:               '完了',
   },
 } satisfies Record<Lang, object>;
 

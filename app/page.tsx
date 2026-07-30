@@ -28,7 +28,7 @@ function PageContent() {
 
   const headerLangLabel = { es: tr.langLabelEs, 'pt-BR': tr.langLabelPt, ja: tr.langLabelJa }[targetLang];
 
-  const langButtonLabel = lang === 'en' ? 'EN' : lang === 'es' ? 'ES' : 'PT';
+  const langButtonLabel = { en: 'EN', es: 'ES', pt: 'PT', ja: 'JA' }[lang];
 
   return (
     <main style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>

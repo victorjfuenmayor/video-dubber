@@ -9,6 +9,8 @@ interface LangContextValue {
   toggle: () => void;
 }
 
+const LANG_CYCLE: Lang[] = ['en', 'es', 'pt', 'ja'];
+
 const LangContext = createContext<LangContextValue>({
   lang: 'en',
   tr: t.en,
@@ -17,7 +19,7 @@ const LangContext = createContext<LangContextValue>({
 
 export function LangProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLang] = useState<Lang>('en');
-  const toggle = () => setLang(l => l === 'en' ? 'es' : l === 'es' ? 'pt' : 'en');
+  const toggle = () => setLang(l => LANG_CYCLE[(LANG_CYCLE.indexOf(l) + 1) % LANG_CYCLE.length]);
   return (
     <LangContext value={{ lang, tr: t[lang], toggle }}>
       {children}

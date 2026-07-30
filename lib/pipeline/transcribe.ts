@@ -81,6 +81,12 @@ function clipOverlaps(segments: AlignedSegment[]): void {
   }
 }
 
+// No genuine spoken word takes less than this long to say. Whisper
+// occasionally hallucinates a short word over background music or ambient
+// noise after real speech has ended (common in a video's musical outro) —
+// a segment this brief is that artifact, not real dialogue.
+const MIN_SEGMENT_SECONDS = 0.2;
+
 export async function transcribe(audioPath: string): Promise<Segment[]> {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) throw new Error('GROQ_API_KEY is not set');
@@ -116,7 +122,9 @@ export async function transcribe(audioPath: string): Promise<Segment[]> {
 
   clipOverlaps(rawSegments);
 
-  return rawSegments.map((seg, i) => ({
+  const filtered = rawSegments.filter((seg) => seg.end - seg.start >= MIN_SEGMENT_SECONDS);
+
+  return filtered.map((seg, i) => ({
     id: i,
     startTime: seg.start,
     endTime: seg.end,

@@ -9,11 +9,12 @@ import FeedbackModal from '@/components/FeedbackModal';
 import { LangProvider, useLang } from '@/components/LangProvider';
 import type { TargetLang } from '@/lib/voices';
 import type { PipelineMode } from '@/lib/pipeline';
+import type { Lang } from '@/lib/i18n';
 
 type AppState = 'idle' | 'processing' | 'done' | 'error';
 
 function PageContent() {
-  const { lang, tr, toggle } = useLang();
+  const { lang, tr, setLang } = useLang();
   const [state, setState]           = useState<AppState>('idle');
   const [showFeedback, setFeedback] = useState(false);
   const [jobId, setJobId] = useState<string | null>(null);
@@ -27,8 +28,6 @@ function PageContent() {
   const handleReset = () => { setState('idle'); setJobId(null); setError(null); };
 
   const headerLangLabel = { es: tr.langLabelEs, 'pt-BR': tr.langLabelPt, ja: tr.langLabelJa }[targetLang];
-
-  const langButtonLabel = { en: 'EN', es: 'ES', pt: 'PT', ja: 'JA' }[lang];
 
   return (
     <main style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
@@ -52,16 +51,18 @@ function PageContent() {
                 <span style={{ fontWeight: 500, color: 'var(--text)' }}>{headerLangLabel}</span>
               </p>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-              <button
-                onClick={toggle}
-                style={{ width: '2.25rem', height: '2.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '0.5rem', border: 'none', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', transition: 'background 0.15s', fontSize: '0.6875rem', fontWeight: 600 }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-2)')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                aria-label="Toggle language"
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+              <select
+                value={lang}
+                onChange={e => setLang(e.target.value as Lang)}
+                aria-label="Interface language"
+                style={{ height: '2.25rem', padding: '0 0.5rem', borderRadius: '0.5rem', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--text)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600, outline: 'none' }}
               >
-                {langButtonLabel}
-              </button>
+                <option value="en">EN</option>
+                <option value="es">ES</option>
+                <option value="pt">PT</option>
+                <option value="ja">JA</option>
+              </select>
               <ThemeToggle />
             </div>
           </div>

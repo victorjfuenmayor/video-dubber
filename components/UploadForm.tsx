@@ -205,6 +205,9 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, on
             {tr.modeSub}
           </button>
         </div>
+        <p style={{ margin: 0, fontSize: '0.75rem', lineHeight: 1.4, color: 'var(--text-faint)' }}>
+          {pipelineMode === 'dub' ? tr.dubDisclaimer : tr.subtitleDisclaimer}
+        </p>
       </div>
 
       {/* Input */}

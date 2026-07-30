@@ -11,19 +11,28 @@ interface Props {
   onError: (msg: string) => void;
   onTargetLangChange?: (lang: TargetLang) => void;
   onModeChange?: (mode: PipelineMode) => void;
+  onVoiceIdChange?: (voiceId: string) => void;
+  initialTargetLang?: TargetLang;
+  initialMode?: PipelineMode;
+  initialVoiceId?: string;
   disabled?: boolean;
 }
 
 const YOUTUBE_DISABLED = process.env.NEXT_PUBLIC_DISABLE_YOUTUBE === 'true';
 
-export default function UploadForm({ onJobStart, onError, onTargetLangChange, onModeChange, disabled }: Props) {
+export default function UploadForm({
+  onJobStart, onError, onTargetLangChange, onModeChange, onVoiceIdChange,
+  initialTargetLang = 'es', initialMode = 'dub', initialVoiceId, disabled,
+}: Props) {
   const { tr } = useLang();
   const [inputMode, setInputMode] = useState<'file' | 'url'>('file');
-  const [pipelineMode, setPipelineMode] = useState<PipelineMode>('dub');
+  const [pipelineMode, setPipelineMode] = useState<PipelineMode>(initialMode);
   const [url, setUrl] = useState('');
-  const [targetLang, setTargetLang] = useState<TargetLang>('es');
+  const [targetLang, setTargetLang] = useState<TargetLang>(initialTargetLang);
   const voices = getVoicesByLang(targetLang);
-  const [voiceId, setVoiceId] = useState<string>(DEFAULT_VOICE_ID);
+  const [voiceId, setVoiceId] = useState<string>(
+    initialVoiceId ?? getVoicesByLang(initialTargetLang)[0]?.id ?? DEFAULT_VOICE_ID
+  );
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [playingVoice, setPlayingVoice] = useState<string | null>(null);
@@ -46,8 +55,15 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, on
   function handleTargetLangChange(lang: TargetLang) {
     setTargetLang(lang);
     const newVoices = getVoicesByLang(lang);
-    setVoiceId(newVoices[0]?.id ?? DEFAULT_VOICE_ID);
+    const newVoiceId = newVoices[0]?.id ?? DEFAULT_VOICE_ID;
+    setVoiceId(newVoiceId);
     onTargetLangChange?.(lang);
+    onVoiceIdChange?.(newVoiceId);
+  }
+
+  function handleVoiceIdChange(id: string) {
+    setVoiceId(id);
+    onVoiceIdChange?.(id);
   }
 
   async function playPreview(voiceId: string, e: React.MouseEvent) {
@@ -162,53 +178,23 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, on
   return (
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.125rem' }}>
 
-      {/* Mode tabs */}
-      <div style={{ display: 'flex', padding: '0.25rem', background: 'var(--surface-2)', borderRadius: '0.75rem', gap: '0.25rem' }}>
-        <button type="button" onClick={() => setInputMode('file')} style={tabStyle(inputMode === 'file')}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
-          </svg>
-          {tr.uploadFile}
-        </button>
-        {!YOUTUBE_DISABLED && (
+      {/* Mode tabs — only meaningful when there's a choice to make */}
+      {!YOUTUBE_DISABLED && (
+        <div style={{ display: 'flex', padding: '0.25rem', background: 'var(--surface-2)', borderRadius: '0.75rem', gap: '0.25rem' }}>
+          <button type="button" onClick={() => setInputMode('file')} style={tabStyle(inputMode === 'file')}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            {tr.uploadFile}
+          </button>
           <button type="button" onClick={() => setInputMode('url')} style={tabStyle(inputMode === 'url')}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/>
             </svg>
             {tr.youtubeUrl}
           </button>
-        )}
-      </div>
-
-      {/* Dub language selector */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-        <label style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{tr.dubLangLabel}</label>
-        <select
-          value={targetLang}
-          onChange={e => handleTargetLangChange(e.target.value as TargetLang)}
-          style={selectStyle}
-        >
-          <option value="es">{tr.dubLangEs}</option>
-          <option value="pt-BR">{tr.dubLangPt}</option>
-          <option value="ja">{tr.dubLangJa}</option>
-        </select>
-      </div>
-
-      {/* Pipeline mode toggle */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-        <label style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{tr.modeLabel}</label>
-        <div style={{ display: 'flex', padding: '0.2rem', background: 'var(--surface-2)', borderRadius: '0.6rem', gap: '0.2rem' }}>
-          <button type="button" onClick={() => handlePipelineModeChange('dub')} style={dubLangTabStyle(pipelineMode === 'dub')}>
-            {tr.modeDub}
-          </button>
-          <button type="button" onClick={() => handlePipelineModeChange('subtitle')} style={dubLangTabStyle(pipelineMode === 'subtitle')}>
-            {tr.modeSub}
-          </button>
         </div>
-        <p style={{ margin: 0, fontSize: '0.75rem', lineHeight: 1.4, color: 'var(--text-faint)' }}>
-          {pipelineMode === 'dub' ? tr.dubDisclaimer : tr.subtitleDisclaimer}
-        </p>
-      </div>
+      )}
 
       {/* Input */}
       {inputMode === 'file' ? (
@@ -249,6 +235,36 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, on
         </div>
       ) : null}
 
+      {/* Dub language selector */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+        <label style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{tr.dubLangLabel}</label>
+        <select
+          value={targetLang}
+          onChange={e => handleTargetLangChange(e.target.value as TargetLang)}
+          style={selectStyle}
+        >
+          <option value="es">{tr.dubLangEs}</option>
+          <option value="pt-BR">{tr.dubLangPt}</option>
+          <option value="ja">{tr.dubLangJa}</option>
+        </select>
+      </div>
+
+      {/* Pipeline mode toggle */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+        <label style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{tr.modeLabel}</label>
+        <div style={{ display: 'flex', padding: '0.2rem', background: 'var(--surface-2)', borderRadius: '0.6rem', gap: '0.2rem' }}>
+          <button type="button" onClick={() => handlePipelineModeChange('dub')} style={dubLangTabStyle(pipelineMode === 'dub')}>
+            {tr.modeDub}
+          </button>
+          <button type="button" onClick={() => handlePipelineModeChange('subtitle')} style={dubLangTabStyle(pipelineMode === 'subtitle')}>
+            {tr.modeSub}
+          </button>
+        </div>
+        <p style={{ margin: 0, fontSize: '0.75rem', lineHeight: 1.4, color: 'var(--text-faint)' }}>
+          {pipelineMode === 'dub' ? tr.dubDisclaimer : tr.subtitleDisclaimer}
+        </p>
+      </div>
+
       {/* Voice selector — hidden for subtitle mode */}
       {pipelineMode === 'dub' && <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         <label style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{tr.voice}</label>
@@ -256,7 +272,7 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, on
           {voices.map((v) => {
             const sel = voiceId === v.id;
             return (
-              <button key={v.id} type="button" onClick={() => setVoiceId(v.id)}
+              <button key={v.id} type="button" onClick={() => handleVoiceIdChange(v.id)}
                 style={{ padding: '0.5rem 0.375rem', borderRadius: '0.75rem', fontSize: '0.8125rem', textAlign: 'center', cursor: 'pointer', border: `1.5px solid ${sel ? 'var(--accent)' : 'var(--border)'}`, background: sel ? 'var(--accent)' : 'var(--surface-2)', color: sel ? '#fff' : 'var(--text)', transition: 'all 0.15s', position: 'relative' }}>
                 <span style={{ display: 'block', fontWeight: 600, lineHeight: 1.2 }}>{v.name}</span>
                 <span style={{ display: 'block', fontSize: '0.6875rem', marginTop: '0.2rem', color: sel ? 'rgba(255,255,255,0.7)' : 'var(--text-faint)' }}>

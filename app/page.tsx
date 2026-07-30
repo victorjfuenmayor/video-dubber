@@ -21,6 +21,7 @@ function PageContent() {
   const [error, setError] = useState<string | null>(null);
   const [targetLang, setTargetLang] = useState<TargetLang>('es');
   const [pipelineMode, setPipelineMode] = useState<PipelineMode>('dub');
+  const [voiceId, setVoiceId] = useState<string | undefined>(undefined);
 
   const handleJobStart = (id: string) => { setJobId(id); setState('processing'); setError(null); };
   const handleComplete = useCallback(() => setState('done'), []);
@@ -75,6 +76,10 @@ function PageContent() {
                 onError={handleError}
                 onTargetLangChange={setTargetLang}
                 onModeChange={setPipelineMode}
+                onVoiceIdChange={setVoiceId}
+                initialTargetLang={targetLang}
+                initialMode={pipelineMode}
+                initialVoiceId={voiceId}
               />
             )}
 

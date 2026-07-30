@@ -30,8 +30,18 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, on
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const previewCache = useRef<Record<string, string>>({});
   const [fileName, setFileName] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const xhrRef = useRef<XMLHttpRequest | null>(null);
+
+  function handleFileSelected(file: File | undefined) {
+    setFileName(file?.name ?? '');
+    if (file && fileRef.current) {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      fileRef.current.files = dt.files;
+    }
+  }
 
   function handleTargetLangChange(lang: TargetLang) {
     setTargetLang(lang);
@@ -192,9 +202,16 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, on
 
       {/* Input */}
       {inputMode === 'file' ? (
-        <label key="file" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '7rem', border: '2px dashed var(--border-2)', borderRadius: '0.75rem', cursor: 'pointer', transition: 'all 0.15s', gap: '0.375rem' }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.background = 'var(--accent-bg)'; }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-2)'; e.currentTarget.style.background = 'transparent'; }}>
+        <label key="file" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '7rem', border: `2px dashed ${isDragging ? 'var(--accent)' : 'var(--border-2)'}`, borderRadius: '0.75rem', cursor: 'pointer', transition: 'all 0.15s', gap: '0.375rem', background: isDragging ? 'var(--accent-bg)' : 'transparent' }}
+          onMouseEnter={e => { if (!isDragging) { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.background = 'var(--accent-bg)'; } }}
+          onMouseLeave={e => { if (!isDragging) { e.currentTarget.style.borderColor = 'var(--border-2)'; e.currentTarget.style.background = 'transparent'; } }}
+          onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
+          onDragLeave={e => { e.preventDefault(); setIsDragging(false); }}
+          onDrop={e => {
+            e.preventDefault();
+            setIsDragging(false);
+            handleFileSelected(e.dataTransfer.files?.[0]);
+          }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-faint)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
           </svg>
@@ -204,7 +221,7 @@ export default function UploadForm({ onJobStart, onError, onTargetLangChange, on
           <span style={{ fontSize: '0.6875rem', color: 'var(--text-faint)' }}>{tr.fileTypes}</span>
           <span style={{ fontSize: '0.6875rem', color: 'var(--accent)', fontWeight: 500 }}>{tr.maxDuration}</span>
           <input ref={fileRef} type="file" accept="video/*" style={{ display: 'none' }} required
-            onChange={e => setFileName(e.target.files?.[0]?.name ?? '')} />
+            onChange={e => handleFileSelected(e.target.files?.[0])} />
         </label>
       ) : inputMode === 'url' ? (
         <div key="url" style={{ position: 'relative' }}>

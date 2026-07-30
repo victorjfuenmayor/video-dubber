@@ -16,7 +16,7 @@ export const t = {
     // UploadForm
     uploadFile:         'Upload file',
     youtubeUrl:         'YouTube URL',
-    clickToSelect:      'Click to select video',
+    clickToSelect:      'Click to select or drop a video',
     fileTypes:          'MP4, MOV, AVI, MKV',
     maxDuration:        'Max 10 min recommended',
     voice:              'Voice',
@@ -87,7 +87,7 @@ export const t = {
     // UploadForm
     uploadFile:         'Subir archivo',
     youtubeUrl:         'URL de YouTube',
-    clickToSelect:      'Haz clic para seleccionar un video',
+    clickToSelect:      'Haz clic o arrastra un video para seleccionarlo',
     fileTypes:          'MP4, MOV, AVI, MKV',
     maxDuration:        'Máx. 10 min recomendado',
     voice:              'Voz',
@@ -158,7 +158,7 @@ export const t = {
     // UploadForm
     uploadFile:         'Enviar arquivo',
     youtubeUrl:         'URL do YouTube',
-    clickToSelect:      'Clique para selecionar um vídeo',
+    clickToSelect:      'Clique ou arraste um vídeo para selecioná-lo',
     fileTypes:          'MP4, MOV, AVI, MKV',
     maxDuration:        'Máx. 10 min recomendado',
     voice:              'Voz',

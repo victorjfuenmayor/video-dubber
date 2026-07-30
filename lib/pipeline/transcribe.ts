@@ -92,10 +92,10 @@ export async function transcribe(audioPath: string): Promise<Segment[]> {
   if (!apiKey) throw new Error('GROQ_API_KEY is not set');
 
   const audioBuffer = fs.readFileSync(audioPath);
-  const audioBlob = new Blob([audioBuffer], { type: 'audio/wav' });
+  const audioBlob = new Blob([audioBuffer], { type: 'audio/mpeg' });
 
   const form = new FormData();
-  form.append('file', audioBlob, 'audio.wav');
+  form.append('file', audioBlob, 'audio.mp3');
   form.append('model', 'whisper-large-v3');
   form.append('response_format', 'verbose_json');
   form.append('timestamp_granularities[]', 'segment');

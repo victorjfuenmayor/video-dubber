@@ -42,19 +42,39 @@ function splitIntoChunks(text: string): string[] {
   return chunks.length > 0 ? chunks : [text];
 }
 
+// Cutting every (MAX_CHARS_PER_LINE_JA * MAX_LINES) characters regardless of
+// what's left over can strand a trailing sentence-ending particle and period
+// (e.g. "です。") as its own chunk — displayed for a fraction of a second.
+// If what remains after a cut would be this short, fold it into the current
+// chunk instead of starting a new one for it.
+const MIN_CHARS_PER_CHUNK_JA = 6;
+
 function splitIntoChunksByChar(text: string): string[] {
   const chars = Array.from(text.trim());
+  const maxCharsPerChunk = MAX_CHARS_PER_LINE_JA * MAX_LINES;
   const chunks: string[] = [];
-  let currentLines: string[] = [];
+  let start = 0;
 
-  for (let i = 0; i < chars.length; i += MAX_CHARS_PER_LINE_JA) {
-    currentLines.push(chars.slice(i, i + MAX_CHARS_PER_LINE_JA).join(''));
-    if (currentLines.length >= MAX_LINES) {
-      chunks.push(currentLines.join('\n'));
-      currentLines = [];
+  while (start < chars.length) {
+    let end = Math.min(start + maxCharsPerChunk, chars.length);
+    const remaining = chars.length - end;
+    if (remaining > 0 && remaining < MIN_CHARS_PER_CHUNK_JA) end = chars.length;
+
+    const slice = chars.slice(start, end);
+    const lines: string[] = [];
+    for (let i = 0; i < slice.length; i += MAX_CHARS_PER_LINE_JA) {
+      if (lines.length === MAX_LINES - 1) {
+        // Last allowed line — absorb everything remaining rather than
+        // wrapping onto a 3rd line just because we folded a short tail in.
+        lines.push(slice.slice(i).join(''));
+        break;
+      }
+      lines.push(slice.slice(i, i + MAX_CHARS_PER_LINE_JA).join(''));
     }
+    chunks.push(lines.join('\n'));
+    start = end;
   }
-  if (currentLines.length > 0) chunks.push(currentLines.join('\n'));
+
   return chunks.length > 0 ? chunks : [text];
 }
 
